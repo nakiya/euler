@@ -319,3 +319,59 @@
      (flatten)
      (apply +)
      inc)
+
+; https://projecteuler.net/problem=29
+
+(defn expt 
+  ([a b p]
+   (if (zero? b)
+     p
+     (recur a (dec b) (* a p))))
+  ([a b]
+   (expt a b 1)))
+
+(->> 
+ (for [i (range 2 101)
+       j (range 2 101)]
+   (expt (biginteger i) (biginteger j)))
+ distinct
+ count)
+
+; https://projecteuler.net/problem=30
+
+(defn get-digits [num]
+  (->> num
+       (str)
+       (mapv #(- (int %) 48))))
+
+(get-digits 1023)
+
+(defn is-sum-of-powers-of-digits? [num power]
+  (->> num
+       (get-digits)
+       ;; Can increase perf by memoizing expt?
+       (mapv #(expt % power))
+       (apply +)
+       (= num)))
+
+;; Anything beyond 6 * (9^5) cannot be expressed as a sum of powers of 5 of digits.
+(def max-sum-of-pw-of-five (* 6 (expt 9 5)))
+
+(->> (range 2 max-sum-of-pw-of-five)
+     (filter #(is-sum-of-powers-of-digits? % 5))
+     (apply +))
+
+; https://projecteuler.net/problem=31
+
+(defn count-change
+  ([amount]
+   (count-change amount 8))
+  ([amount kinds-of-coins]
+   (let [coins [1, 2, 5, 10, 20, 50, 100, 200]]
+    (cond (= amount 0) 1
+          (< amount 0) 0
+          (= kinds-of-coins 0) 0
+          :else (+ (count-change amount (- kinds-of-coins 1))
+                   (count-change (- amount (nth coins (dec kinds-of-coins))) kinds-of-coins))))))
+
+(count-change 200)
