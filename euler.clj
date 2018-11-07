@@ -263,3 +263,59 @@
      second)
 
 ; https://projecteuler.net/problem=27
+
+(defn smallest-divisor [n]
+  (letfn [(divides? [n divisor] (= 0 (mod n divisor)))
+          (find-divisor [n test-divisor]
+                        (cond (> (* test-divisor test-divisor) n) n
+                              (divides? n test-divisor) test-divisor
+                              :else (find-divisor n (+ 1 test-divisor))))]
+    (find-divisor n 2)))
+
+(defn prime? [n]
+  (if (neg? n)
+      false
+  (= n (smallest-divisor n))))
+
+(def memo-prime?
+  (memoize prime?))
+
+(defn quadratic-vals 
+  ([a b n]
+   (lazy-seq (cons (+ (* n n) (* a n) b)
+                   (quadratic-vals a b (+ 1 n)))))
+  ([a b]
+   (quadratic-vals a b 0)))
+
+(->> (quadratic-vals -15 97)
+     (take-while memo-prime?)
+     (count))
+
+(->> (for [i (range -1000 1001)
+           j (range -1000 1001)]
+       (->> (quadratic-vals i j)
+            (take-while memo-prime?)
+            (count)
+            (conj [[i j]])))
+     (sort-by second >)
+     (ffirst)
+     (apply *))
+    
+; https://projecteuler.net/problem=28
+
+;; Each rectangle has sides that are +2 in length than previous.
+(defn diagonal-vals
+  ([dim last-val]
+   (lazy-seq (cons (map + (repeat last-val) (map * (repeat dim) [1 2 3 4]))
+                   (diagonal-vals (+ 2 dim) (+ last-val (* 4 dim))))))
+  ([]
+   (diagonal-vals 2 1)))
+
+;; n-th term in seq has square length (2n + 1)
+;; 1001 length rect = 500th elem.
+;; Finally add + 1 for the first one.
+(->> (diagonal-vals)
+     (take 500)
+     (flatten)
+     (apply +)
+     inc)
