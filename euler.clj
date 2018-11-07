@@ -375,3 +375,113 @@
                    (count-change (- amount (nth coins (dec kinds-of-coins))) kinds-of-coins))))))
 
 (count-change 200)
+
+; https://projecteuler.net/problem=32
+
+(defn is-pan-digital? [[[n1 n2] p]]
+  (->> (str n1 n2 p)
+       (remove #{\0})
+       (distinct)
+       (count)
+       (= 9)))
+
+(->> (for [i (range 1 10000) j (range 1 10000)]
+       [i j])
+     (filter #(and (< (apply * %) 10000) (>= (apply * %) 1000)))
+     (reduce #(conj %1 %2 (apply * %2)) [])
+     (apply hash-map)
+     (filter is-pan-digital?)
+     (map second)
+     (distinct)
+     (apply +))
+
+; https://projecteuler.net/problem=33
+
+(defn skip-zero-range [start end]
+  (->> (range start end)
+       (remove #(zero? (rem % 10)))))
+
+
+(defn is-curious-fraction? [num denom]
+  (let [val (/ num denom)]
+    (or (= val (and (= (mod num 10) (mod denom 10))
+                    (/ (quot num 10) (quot denom 10))))
+        (= val (and (= (mod num 10) (quot denom 10))
+                    (/ (quot num 10) (mod denom 10))))
+        (= val (and (= (quot num 10) (mod denom 10))
+                    (/ (mod num 10) (quot denom 10))))
+        (= val (and (= (quot num 10) (quot denom 10))
+                    (/ (mod num 10) (mod denom 10)))))))
+
+(is-curious-fraction? 11 22)
+
+(->> (for [numerator (skip-zero-range 10 100)
+           denominator (skip-zero-range 10 100)]
+       [numerator denominator])
+     (filter #(apply is-curious-fraction? %))
+     (filter #(not= (first %) (second %)))
+     (filter #(< (first %) (second %)))
+     (map #(apply / %))
+     (apply *))
+
+
+; https://projecteuler.net/problem=34
+; Don't care about int overflow as we are not gonna hit it.
+(defn factorial
+  ([x prod]
+   (if (= x 0)
+     prod
+     (recur (dec x) (* prod x))))
+  ([x]
+   (factorial x 1)))
+
+(def memo-factorial (memoize factorial))
+
+(defn sum-fact-digits [num]
+  (->> num
+       (str)
+       (map #(- (int %) 48))
+       (map memo-factorial)
+       (apply +)))
+
+;; Need only look until (* 7 (factorial 9)) (9! cannot catch 8 digit numbers.)
+(->> (range 3 (* 7 (memo-factorial 9)))
+     (filter #(= % (sum-fact-digits %)))
+     (apply +))
+
+; https://projecteuler.net/problem=35
+;; Copy from prob 27
+(defn smallest-divisor [n]
+  (letfn [(divides? [n divisor] (= 0 (mod n divisor)))
+          (find-divisor [n test-divisor]
+                        (cond (> (* test-divisor test-divisor) n) n
+                              (divides? n test-divisor) test-divisor
+                              :else (find-divisor n (+ 1 test-divisor))))]
+    (find-divisor n 2)))
+
+(defn prime? [n]
+  (if (neg? n)
+      false
+  (= n (smallest-divisor n))))
+
+(def memo-prime?
+  (memoize prime?))
+;; End copy
+
+(defn rotate-str [s]
+  (str (subs s 1) (subs s 0 1)))
+
+(defn rotations [num]
+  (let [sn (str num)
+        l (count sn)]
+       (->> (iterate (fn [x] (rotate-str x)) sn)
+            (take l)
+            (map #(Integer. %)))))
+       
+
+(defn is-circular-prime? [num]
+  (every? prime? (rotations num)))
+
+(->> (range 2 1000000)
+     (filter is-circular-prime?)
+     (count))
