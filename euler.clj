@@ -1,5 +1,6 @@
 (ns eul
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str])
+  )
 
 ; https://projecteuler.net/problem=1
 (reduce + (filter #(or (= (mod % 3) 0) (= (mod % 5) 0)) (range 1000)))
@@ -330,7 +331,7 @@
   ([a b]
    (expt a b 1)))
 
-(->> 
+(->>
  (for [i (range 2 101)
        j (range 2 101)]
    (expt (biginteger i) (biginteger j)))
@@ -382,7 +383,7 @@
   (->> (str n1 n2 p)
        (remove #{\0})
        (distinct)
-       (count)
+       (.length)
        (= 9)))
 
 (->> (for [i (range 1 10000) j (range 1 10000)]
@@ -460,7 +461,7 @@
     (find-divisor n 2)))
 
 (defn prime? [n]
-  (if (neg? n)
+  (if (< n 2)
       false
   (= n (smallest-divisor n))))
 
@@ -473,11 +474,10 @@
 
 (defn rotations [num]
   (let [sn (str num)
-        l (count sn)]
+        l (.length sn)]
        (->> (iterate (fn [x] (rotate-str x)) sn)
             (take l)
             (map #(Integer. %)))))
-       
 
 (defn is-circular-prime? [num]
   (every? prime? (rotations num)))
@@ -485,3 +485,133 @@
 (->> (range 2 1000000)
      (filter is-circular-prime?)
      (count))
+
+;; https://projecteuler.net/problem=36
+(defn is-palindrome? [s length]
+  (if (< length 2)
+    true
+    (if (not= (first s) (nth s (dec length)))
+      false
+      (is-palindrome? (subs s 1 (dec length)) (- length 2)))))
+
+;; (is-palindrome? "drawa" 5)
+
+(defn is-palindrome-number? [num base]
+  (let [num-str (Integer/toString num base)]
+    (is-palindrome? num-str (.length num-str))))
+
+(time (->> (range 1 1000000)
+          (filter #(and (is-palindrome-number? % 2)
+                        (is-palindrome-number? % 10)))
+          (apply +)))
+
+;; https://projecteuler.net/problem=37
+
+;; Primes lazy-seq implementation taken from https://gist.github.com/nbrandaleone/5acf93235be254c52595
+;; (def primes
+;;   (concat
+;;    [2 3 5 7]
+;;    (lazy-seq
+;;     (let [primes-from
+;;           (fn primes-from [n [f & r]]
+;;             (if (some #(zero? (rem n %))
+;;                       (take-while #(<= (* % %) n) primes))
+;;               (recur (+ n f) r)
+;;               (lazy-seq (cons n (primes-from (+ n f) r)))))
+;;           wheel (cycle [2 4 2 4 6 2 6 4 2 4 6 6 2 6  4  2
+;;                         6 4 6 8 4 2 4 2 4 8 6 4 6 2  4  6
+;;                         2 6 6 4 2 4 6 2 6 4 2 4 2 10 2 10])]
+;;       (primes-from 11 wheel)))))
+
+;; Taken from https://stackoverflow.com/a/7625207/466694
+;; (defn gen-primes "Generates an infinite, lazy sequence of prime numbers"
+;;   []
+;;   (let [reinsert (fn [table x prime]
+;;                    (update-in table [(+ prime x)] conj prime))]
+;;     (defn primes-step [table d]
+;;       (if-let [factors (get table d)]
+;;         (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
+;;                (inc d))
+;;         (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
+;;                                        (inc d))))))
+;;     (primes-step {} 2)))
+
+(defn is-truncatable-prime? [num]
+  (let [s (str num)
+        length (.length s)
+        sub-l (map #(subs s %) (range length))
+        sub-r (map #(subs s 0 %) (range 1 length))
+        all (map #(Integer. %) (concat sub-l sub-r))]
+    (every? memo-prime? all)))
+
+(->> (range)
+     (drop 10)
+     (filter is-truncatable-prime?)
+     (take 11)
+     (apply +))
+
+;; https://projecteuler.net/problem=38
+(->>
+ (for [i (range 1 10000)]
+      (->> (map #(range 1 %) (range 2 11))
+           (map #(map (partial * i) %))
+           (map #(apply str %))
+           (filter #(= (.length %) 9))))
+ (remove empty?)
+ (flatten)
+ (map distinct)
+ (map #(apply str %))
+ (filter #(= (.length %) 9))
+ (remove #(some #{\0} %))
+ (map #(Integer. %))
+ (sort >)
+ (first))
+
+;; https://projecteuler.net/problem=39
+(defn square [x] (* x x))
+
+;; c = p - a - b
+;; c^2 = a^2 + b^2
+;; (p - a - b)^2 = a^2 + b^2
+;; (p - (a + b))^2 = a^2 + b^2
+;; p^2 + (a + b)^2 - 2*p*(a+b) = a^2 + b^2
+;; p^2 + a^2 + b^2 + 2*a*b - 2*p*(a+b) = a^2 + b^2
+;; p^2 + 2(ab - ap - bp) = 0
+;; p^2 + 2b(a - p) - 2ap = 0
+;; b = (p^2 - 2ap)/2(p-a)
+
+(->> (for [p (range 1 1000) a (range 1 p)] [p a])
+     (map (fn [[p a :as entry]]
+            (let [b (/ (- (square p) (* 2 a p))
+                       (* 2 (- p a)))]
+              (if (pos-int? b)
+                (conj entry b)
+                nil))))
+     (map #(remove nil? %))
+     (remove empty?)
+     (map set)
+     (distinct)
+     (map #(apply vector %))
+     (map #(apply max %))
+     (frequencies)
+     (apply max-key val)
+     (key))
+
+;; https://projecteuler.net/problem=40`
+(defn char->int [ch]
+  (- (int ch) 48))
+
+(defn champernowne
+  ([num pos]
+   (lazy-seq
+    (let [snum (str num)]
+      (if (< pos (.length snum))
+        (cons (char->int (nth snum pos))
+              (champernowne num (inc pos)))
+        (champernowne (inc num) 0)))))
+  ([]
+   (champernowne 1 0)))
+
+(->> [0 9 99 999 9999 99999 999999]
+     (map #(nth (champernowne) %))
+     (apply *))
