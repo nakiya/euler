@@ -1,6 +1,5 @@
 (ns eul
-  (:require [clojure.string :as str])
-  )
+  (:require [clojure.string :as str]))
 
 ; https://projecteuler.net/problem=1
 (reduce + (filter #(or (= (mod % 3) 0) (= (mod % 5) 0)) (range 1000)))
@@ -37,7 +36,7 @@
 
 ; https://projecteuler.net/problem=17
 (defn num-to-string [num]
-  (cond 
+  (cond
     (< num 20)
     (case num
       0 ""
@@ -94,23 +93,21 @@
 ; https://projecteuler.net/problem=18
 
 (def p18-data
-  [
-                                [75]
-                              [95  64]
-                            [17  47  82]
-                          [18  35  87  10]
-                        [20  4   82  47  65]
-                      [19  1   23  75  3   34]
-                    [88  2   77  73   7  63  67]
-                  [99  65   4  28   6  16  70  92]
-                [41  41  26  56  83  40  80  70  33]
-              [41  48  72  33  47  32  37  16  94  29]
-            [53  71  44  65  25  43  91  52  97  51  14]
-          [70  11  33  28  77  73  17  78  39  68  17  57]
-        [91  71  52  38  17  14  91  43  58  50  27  29  48]
-      [63  66   4  68  89  53  67  30  73  16  69  87  40  31]
-    [4   62  98  27  23   9  70  98  73  93  38  53  60   4  23]
-  ])
+  [[75]
+   [95  64]
+   [17  47  82]
+   [18  35  87  10]
+   [20  4   82  47  65]
+   [19  1   23  75  3   34]
+   [88  2   77  73   7  63  67]
+   [99  65   4  28   6  16  70  92]
+   [41  41  26  56  83  40  80  70  33]
+   [41  48  72  33  47  32  37  16  94  29]
+   [53  71  44  65  25  43  91  52  97  51  14]
+   [70  11  33  28  77  73  17  78  39  68  17  57]
+   [91  71  52  38  17  14  91  43  58  50  27  29  48]
+   [63  66   4  68  89  53  67  30  73  16  69  87  40  31]
+   [4   62  98  27  23   9  70  98  73  93  38  53  60   4  23]])
 
 ;; Build tree
 ; (defn make-tree [triangle row col]
@@ -122,11 +119,11 @@
 ; (make-tree p18-data 0 0)
 
 (defn dfs [triangle row col max-rows]
- (if (< row max-rows)
-   (let [val (get-in triangle [row col])]
-     (max (+ val (dfs triangle (+ 1 row) col max-rows))
-          (+ val (dfs triangle (+ 1 row) (+ 1 col) max-rows))))
-     0))
+  (if (< row max-rows)
+    (let [val (get-in triangle [row col])]
+      (max (+ val (dfs triangle (+ 1 row) col max-rows))
+           (+ val (dfs triangle (+ 1 row) (+ 1 col) max-rows))))
+    0))
 
 (dfs p18-data 0 0 (count p18-data))
 
@@ -159,7 +156,7 @@
        (map #(if % leap-year-months non-leap-year-months))
        flatten))
 
-(def year-month-sums 
+(def year-month-sums
   (day-sums year-month-days))
 
 ; 1 Jan 1900 was a Monday
@@ -188,7 +185,7 @@
       (->> (map-indexed (fn [idx sum] (* (+ 1 idx) sum))))
       (->> (reduce +))
     ; (->> (take 10)))
-      ))
+))
 
 ; https://projecteuler.net/problem=23
 ; Also, see https://codereview.stackexchange.com/questions/206966/improving-performance-of-this-code
@@ -215,9 +212,9 @@
 
 (defn is-sum-of-two-abundants?
   [num]
-    (some (fn [ab]
-            (abundants (- num ab)))
-          abundants))
+  (some (fn [ab]
+          (abundants (- num ab)))
+        abundants))
 
 (time
  (->> (range 28124)
@@ -247,7 +244,7 @@
 
 ; https://projecteuler.net/problem=26
 
-(defn divide 
+(defn divide
   ([num divisor prev len]
    (if (prev [num divisor])
      (- len (prev [num divisor]))
@@ -275,13 +272,13 @@
 
 (defn prime? [n]
   (if (neg? n)
-      false
-  (= n (smallest-divisor n))))
+    false
+    (= n (smallest-divisor n))))
 
 (def memo-prime?
   (memoize prime?))
 
-(defn quadratic-vals 
+(defn quadratic-vals
   ([a b n]
    (lazy-seq (cons (+ (* n n) (* a n) b)
                    (quadratic-vals a b (+ 1 n)))))
@@ -301,7 +298,7 @@
      (sort-by second >)
      (ffirst)
      (apply *))
-    
+
 ; https://projecteuler.net/problem=28
 
 ;; Each rectangle has sides that are +2 in length than previous.
@@ -323,7 +320,7 @@
 
 ; https://projecteuler.net/problem=29
 
-(defn expt 
+(defn expt
   ([a b p]
    (if (zero? b)
      p
@@ -369,11 +366,11 @@
    (count-change amount 8))
   ([amount kinds-of-coins]
    (let [coins [1, 2, 5, 10, 20, 50, 100, 200]]
-    (cond (= amount 0) 1
-          (< amount 0) 0
-          (= kinds-of-coins 0) 0
-          :else (+ (count-change amount (- kinds-of-coins 1))
-                   (count-change (- amount (nth coins (dec kinds-of-coins))) kinds-of-coins))))))
+     (cond (= amount 0) 1
+           (< amount 0) 0
+           (= kinds-of-coins 0) 0
+           :else (+ (count-change amount (- kinds-of-coins 1))
+                    (count-change (- amount (nth coins (dec kinds-of-coins))) kinds-of-coins))))))
 
 (count-change 200)
 
@@ -451,23 +448,6 @@
      (apply +))
 
 ; https://projecteuler.net/problem=35
-;; Copy from prob 27
-(defn smallest-divisor [n]
-  (letfn [(divides? [n divisor] (= 0 (mod n divisor)))
-          (find-divisor [n test-divisor]
-                        (cond (> (* test-divisor test-divisor) n) n
-                              (divides? n test-divisor) test-divisor
-                              :else (find-divisor n (+ 1 test-divisor))))]
-    (find-divisor n 2)))
-
-(defn prime? [n]
-  (if (< n 2)
-      false
-  (= n (smallest-divisor n))))
-
-(def memo-prime?
-  (memoize prime?))
-;; End copy
 
 (defn rotate-str [s]
   (str (subs s 1) (subs s 0 1)))
@@ -475,9 +455,9 @@
 (defn rotations [num]
   (let [sn (str num)
         l (.length sn)]
-       (->> (iterate (fn [x] (rotate-str x)) sn)
-            (take l)
-            (map #(Integer. %)))))
+    (->> (iterate (fn [x] (rotate-str x)) sn)
+         (take l)
+         (map #(Integer. %)))))
 
 (defn is-circular-prime? [num]
   (every? prime? (rotations num)))
@@ -501,9 +481,9 @@
     (is-palindrome? num-str (.length num-str))))
 
 (time (->> (range 1 1000000)
-          (filter #(and (is-palindrome-number? % 2)
-                        (is-palindrome-number? % 10)))
-          (apply +)))
+           (filter #(and (is-palindrome-number? % 2)
+                         (is-palindrome-number? % 10)))
+           (apply +)))
 
 ;; https://projecteuler.net/problem=37
 
@@ -553,10 +533,10 @@
 ;; https://projecteuler.net/problem=38
 (->>
  (for [i (range 1 10000)]
-      (->> (map #(range 1 %) (range 2 11))
-           (map #(map (partial * i) %))
-           (map #(apply str %))
-           (filter #(= (.length %) 9))))
+   (->> (map #(range 1 %) (range 2 11))
+        (map #(map (partial * i) %))
+        (map #(apply str %))
+        (filter #(= (.length %) 9))))
  (remove empty?)
  (flatten)
  (map distinct)
@@ -568,7 +548,6 @@
  (first))
 
 ;; https://projecteuler.net/problem=39
-(defn square [x] (* x x))
 
 ;; c = p - a - b
 ;; c^2 = a^2 + b^2
@@ -582,7 +561,7 @@
 
 (->> (for [p (range 1 1000) a (range 1 p)] [p a])
      (map (fn [[p a :as entry]]
-            (let [b (/ (- (square p) (* 2 a p))
+            (let [b (/ (- (* p p) (* 2 a p))
                        (* 2 (- p a)))]
               (if (pos-int? b)
                 (conj entry b)
@@ -615,3 +594,111 @@
 (->> [0 9 99 999 9999 99999 999999]
      (map #(nth (champernowne) %))
      (apply *))
+
+; https://projecteuler.net/problem=41
+;; Create a function to check if a number is pandigital because we are seeing this a lot.
+;; Base is 10 ftm
+(defn get-digits [num]
+  (->> [num []]
+     (iterate (fn [[num digits]]
+                (when (> num 0)
+                  [(quot num 10) (conj digits (rem num 10))])))
+     (take-while some?)
+     (last)
+     (second)))
+
+(defn is-pandigital? [num num-digits]
+  (let [digits (get-digits num)]
+       (and (not-any? #(> % num-digits) digits)
+            (= num-digits (count digits))
+            (apply distinct? digits))))
+
+(is-pandigital? 1234 4)
+
+;; There's no need to use is-pandigital if we generate pan-digital permuatations in the first place.
+(->> (range 1 9)
+     (map #(range 1 (inc %)))
+     (map #(permutations %))
+     (mapcat identity)
+     (map #(map (fn [i] (char (+ 48 i))) %))
+     (map #(apply str %))
+     (map #(Integer. %))
+     (filter memo-prime?)
+     (apply max))
+
+; https://projecteuler.net/problem=42
+(defn gen-triangle-numbers 
+  ([n]
+   (lazy-seq (cons (/ (* n (inc n)) 2)
+                   (gen-triangle-numbers (inc n)))))
+  ([]
+   (gen-triangle-numbers 1)))
+
+(def p42-tri-numbers
+  (set (take-while #(< % 1000) (gen-triangle-numbers))))
+
+(defn word-value [word]
+  (->> word
+       (map #(- (int %) 64))
+       (apply +)))
+
+(->> (str/split (slurp "p042_words.txt") #",")
+     (map (fn [s]
+            (apply str (remove #(= \" %) s))))
+     (map word-value)
+     ;; max is 416 so we are safe with < 1000 val tri numbers
+    ;  (apply max))
+    (filter p42-tri-numbers)
+    (count))
+
+;; https://projecteuler.net/problem=43
+(defn num-from-list [l]
+  (->> l
+       (reverse)
+       (map * [1 10 100 1000 10000 100000 1000000 10000000 100000000 1000000000])
+       (apply +)))
+
+(defn flip [f]
+  (fn [& args]
+    (apply f (reverse args))))
+
+(defn sub-string-divisibility [digits]
+  (->> (range 1 8)
+       (map #(subvec (apply vector digits) % (+ 3 %)))
+       (map num-from-list)
+       (map #(/ %2 %1) [2 3 5 7 11 13 17])
+       (every? int?)))
+
+(->> (range 0 10)
+     (permutations)
+     (remove #(= (first %) 0))
+     (filter sub-string-divisibility)
+     (map num-from-list)
+     (apply +))
+
+;; https://projecteuler.net/problem=44
+
+(defn gen-pentagonal-numbers
+  ([n ]
+   (lazy-seq (cons (/ (* n (- (* 3 n) 1)) 2)
+                   (gen-pentagonal-numbers (inc n)))))
+  ([]
+   (gen-pentagonal-numbers 1)))
+
+(def p44-pentagonals (->> (gen-pentagonal-numbers)
+                          (take 1000000)
+                          (apply sorted-set)))
+
+(defn p44-criteria-lz [n]
+  (lazy-seq
+   (let [pk (/ (* n (- (* 3 n) 1)) 2)
+         pjs (take-while #(< % pk) p44-pentagonals)
+         matches (->> pjs
+                      (map #(vector (+ pk %) (Math/abs (- pk %))))
+                      (filter #(and (p44-pentagonals (first %)) (p44-pentagonals (second %)))))]
+     (if (empty? matches)
+       (p44-criteria-lz (inc n))
+       (cons (second (first matches)) (p44-criteria-lz (inc n)))))))
+
+(first (take 1 (p44-criteria-lz 1)))
+
