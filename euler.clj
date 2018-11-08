@@ -2,16 +2,18 @@
   (:require [clojure.string :as str]))
 
 ; https://projecteuler.net/problem=1
-(reduce + (filter #(or (= (mod % 3) 0) (= (mod % 5) 0)) (range 1000)))
+(defn problem-1 []
+  (reduce + (filter #(or (= (mod % 3) 0) (= (mod % 5) 0)) (range 1000))))
 
 ; https://projecteuler.net/problem=2
-(defn fib
+(defn fibonacci
   ([]
    (fib 1 1))
   ([a b]
    (lazy-seq (cons a (fib b (+ a b))))))
 
-(reduce + (filter #(even? %) (take-while #(< % 4000000) (fib))))
+(defn problem-2 []
+  (reduce + (filter #(even? %) (take-while #(< % 4000000) (fibonacci)))))
 
 ; https://projecteuler.net/problem=16
 
@@ -20,19 +22,19 @@
         digits (map #(- (int %) 48) str-num)]
     (reduce + digits)))
 
-(sum-digits (.toBigInteger (BigDecimal. (Math/pow 2 1000))))
+(defn problem-16 []
+  (sum-digits (.toBigInteger (BigDecimal. (Math/pow 2 1000)))))
 
 ;https://projecteuler.net/problem=8
-(def p8-input "7316717653133062491922511967442657474235534919493496983520312774506326239578318016984801869478851843858615607891129494954595017379583319528532088055111254069874715852386305071569329096329522744304355766896648950445244523161731856403098711121722383113622298934233803081353362766142828064444866452387493035890729629049156044077239071381051585930796086670172427121883998797908792274921901699720888093776657273330010533678812202354218097512545405947522435258490771167055601360483958644670632441572215539753697817977846174064955149290862569321978468622482839722413756570560574902614079729686524145351004748216637048440319989000889524345065854122758866688116427171479924442928230863465674813919123162824586178664583591245665294765456828489128831426076900422421902267105562632111110937054421750694165896040807198403850962455444362981230987879927244284909188845801561660979191338754992005240636899125607176060588611646710940507754100225698315520005593572972571636269561882670428252483600823257530420752963450")
-
-(let [parts (partition 13 1 p8-input)]
-  (->>
-   parts
-   (map (fn [part]
-          (->> part
-               (map #(- (int %) 48))
-               (reduce *))))
-   (reduce max)))
+(defn problem-8 [] (let [p8-input "7316717653133062491922511967442657474235534919493496983520312774506326239578318016984801869478851843858615607891129494954595017379583319528532088055111254069874715852386305071569329096329522744304355766896648950445244523161731856403098711121722383113622298934233803081353362766142828064444866452387493035890729629049156044077239071381051585930796086670172427121883998797908792274921901699720888093776657273330010533678812202354218097512545405947522435258490771167055601360483958644670632441572215539753697817977846174064955149290862569321978468622482839722413756570560574902614079729686524145351004748216637048440319989000889524345065854122758866688116427171479924442928230863465674813919123162824586178664583591245665294765456828489128831426076900422421902267105562632111110937054421750694165896040807198403850962455444362981230987879927244284909188845801561660979191338754992005240636899125607176060588611646710940507754100225698315520005593572972571636269561882670428252483600823257530420752963450"
+                         parts (partition 13 1 p8-input)]
+                     (->>
+                      parts
+                      (map (fn [part]
+                             (->> part
+                                  (map #(- (int %) 48))
+                                  (reduce *))))
+                      (reduce max))))
 
 ; https://projecteuler.net/problem=17
 (defn num-to-string [num]
@@ -82,41 +84,15 @@
     (= num 1000)
     "onethousand"))
 
-(count (num-to-string 342))
-(num-to-string 115)
+;; (count (num-to-string 342))
+;; (num-to-string 115)
 
-(->> (range 1 1001)
-     (map num-to-string)
-     (map count)
-     (reduce +))
+(defn problem-17 [] (->> (range 1 1001)
+                         (map num-to-string)
+                         (map count)
+                         (reduce +)))
 
 ; https://projecteuler.net/problem=18
-
-(def p18-data
-  [[75]
-   [95  64]
-   [17  47  82]
-   [18  35  87  10]
-   [20  4   82  47  65]
-   [19  1   23  75  3   34]
-   [88  2   77  73   7  63  67]
-   [99  65   4  28   6  16  70  92]
-   [41  41  26  56  83  40  80  70  33]
-   [41  48  72  33  47  32  37  16  94  29]
-   [53  71  44  65  25  43  91  52  97  51  14]
-   [70  11  33  28  77  73  17  78  39  68  17  57]
-   [91  71  52  38  17  14  91  43  58  50  27  29  48]
-   [63  66   4  68  89  53  67  30  73  16  69  87  40  31]
-   [4   62  98  27  23   9  70  98  73  93  38  53  60   4  23]])
-
-;; Build tree
-; (defn make-tree [triangle row col]
-;   (let [val (get-in triangle [row col])]
-;     (if (< (+ 1 row) (count triangle))
-;       [val (make-tree triangle (+ 1 row) col) (make-tree triangle (+ 1 row) (+ 1 col))]
-;       [val nil nil])))
-
-; (make-tree p18-data 0 0)
 
 (defn dfs [triangle row col max-rows]
   (if (< row max-rows)
@@ -125,19 +101,32 @@
            (+ val (dfs triangle (+ 1 row) (+ 1 col) max-rows))))
     0))
 
-(dfs p18-data 0 0 (count p18-data))
+(defn problem-18 []
+  (let [p18-data
+        [[75]
+         [95  64]
+         [17  47  82]
+         [18  35  87  10]
+         [20  4   82  47  65]
+         [19  1   23  75  3   34]
+         [88  2   77  73   7  63  67]
+         [99  65   4  28   6  16  70  92]
+         [41  41  26  56  83  40  80  70  33]
+         [41  48  72  33  47  32  37  16  94  29]
+         [53  71  44  65  25  43  91  52  97  51  14]
+         [70  11  33  28  77  73  17  78  39  68  17  57]
+         [91  71  52  38  17  14  91  43  58  50  27  29  48]
+         [63  66   4  68  89  53  67  30  73  16  69  87  40  31]
+         [4   62  98  27  23   9  70  98  73  93  38  53  60   4  23]]]
+    (dfs p18-data 0 0 (count p18-data))))
 
 ; https://projecteuler.net/problem=19
-
 
 ; A leap year occurs on any year evenly divisible by 4, but not on a century unless it is divisible by 400.
 (defn is-leap-year [year]
   (not (or (and (= 0 (mod year 100))
                 (< 0 (mod year 400)))
            (< 0 (mod year 4)))))
-
-(def leap-year-months [31 29 31 30 31 30 31 31 30 31 30 31])
-(def non-leap-year-months [31 28 31 30 31 30 31 31 30 31 30 31])
 
 (defn day-sums [days]
   (reduce
@@ -147,31 +136,28 @@
        (conj coll (+ last-sum e))))
    [] days))
 
-(def leap-year-month-sums (day-sums leap-year-months))
-(def non-leap-year-month-sums (day-sums non-leap-year-months))
-
-(def year-month-days
-  (->> (range 1900 2001)
-       (map is-leap-year)
-       (map #(if % leap-year-months non-leap-year-months))
-       flatten))
-
-(def year-month-sums
-  (day-sums year-month-days))
-
 ; 1 Jan 1900 was a Monday
 (defn is-sunday [sum]
   (= 6 (mod sum 7)))
 
-(def count-sundays
-  (->> year-month-sums
-       (drop 11)
-       (filter is-sunday)
-       count))
+(defn problem-19 []
+  (let [leap-year-months [31 29 31 30 31 30 31 31 30 31 30 31]
+        non-leap-year-months [31 28 31 30 31 30 31 31 30 31 30 31]
+        leap-year-month-sums (day-sums leap-year-months)
+        non-leap-year-month-sums (day-sums non-leap-year-months)
+        year-month-days (->> (range 1900 2001)
+                             (map is-leap-year)
+                             (map #(if % leap-year-months non-leap-year-months))
+                             flatten)
+        year-month-sums (day-sums year-month-days)]
+    (->> year-month-sums
+         (drop 11)
+         (filter is-sunday)
+         count)))
 
 ;https://projecteuler.net/problem=22
 
-(defn p22 []
+(defn problem-22 []
   (-> "p022_names.txt"
       slurp
       (str/split #",")
@@ -183,9 +169,7 @@
                             (+ p (- (int e) 64)))
                           0 name))))
       (->> (map-indexed (fn [idx sum] (* (+ 1 idx) sum))))
-      (->> (reduce +))
-    ; (->> (take 10)))
-))
+      (->> (reduce +))))
 
 ; https://projecteuler.net/problem=23
 ; Also, see https://codereview.stackexchange.com/questions/206966/improving-performance-of-this-code
@@ -216,21 +200,12 @@
           (abundants (- num ab)))
         abundants))
 
-(time
+(defn problem-23 []
  (->> (range 28124)
       (remove is-sum-of-two-abundants?)
       (apply +)))
 
 ; https://projecteuler.net/problem=24
-
-(def elements [0 1 2])
-
-(defn powers-of-two
-  ([]
-   (powers-of-two 1))
-  ([a]
-   (lazy-seq
-    (cons a (powers-of-two (* a 2))))))
 
 ;; I have no idea how this works.
 (defn permutations [s]
@@ -240,7 +215,8 @@
                      (map #(cons x %) (permutations (remove #{x} s)))))
      [s])))
 
-; (apply str (nth (permutations "0123456789") 999999))
+(defn problem-24 []
+  (apply str (nth (permutations "0123456789") 999999)))
 
 ; https://projecteuler.net/problem=26
 
@@ -255,10 +231,11 @@
   ([divisor]
    (divide 1 divisor {} 0)))
 
-(->> (map #(vector (divide %) %) (range 2 1000))
-     (into (sorted-map))
-     last
-     second)
+(defn problem-26 []
+  (->> (map #(vector (divide %) %) (range 2 1000))
+       (into (sorted-map))
+       last
+       second))
 
 ; https://projecteuler.net/problem=27
 
@@ -285,19 +262,16 @@
   ([a b]
    (quadratic-vals a b 0)))
 
-(->> (quadratic-vals -15 97)
-     (take-while memo-prime?)
-     (count))
-
-(->> (for [i (range -1000 1001)
-           j (range -1000 1001)]
-       (->> (quadratic-vals i j)
-            (take-while memo-prime?)
-            (count)
-            (conj [[i j]])))
-     (sort-by second >)
-     (ffirst)
-     (apply *))
+(defn problem-27 []
+  (->> (for [i (range -1000 1001)
+             j (range -1000 1001)]
+         (->> (quadratic-vals i j)
+              (take-while memo-prime?)
+              (count)
+              (conj [[i j]])))
+       (sort-by second >)
+       (ffirst)
+       (apply *)))
 
 ; https://projecteuler.net/problem=28
 
@@ -312,11 +286,12 @@
 ;; n-th term in seq has square length (2n + 1)
 ;; 1001 length rect = 500th elem.
 ;; Finally add + 1 for the first one.
-(->> (diagonal-vals)
-     (take 500)
-     (flatten)
-     (apply +)
-     inc)
+(defn problem-28 []
+  (->> (diagonal-vals)
+       (take 500)
+       (flatten)
+       (apply +)
+       (inc)))
 
 ; https://projecteuler.net/problem=29
 
@@ -328,12 +303,13 @@
   ([a b]
    (expt a b 1)))
 
-(->>
- (for [i (range 2 101)
-       j (range 2 101)]
-   (expt (biginteger i) (biginteger j)))
- distinct
- count)
+(defn problem-29 []
+  (->>
+   (for [i (range 2 101)
+         j (range 2 101)]
+     (expt (biginteger i) (biginteger j)))
+   (distinct)
+   (count)))
 
 ; https://projecteuler.net/problem=30
 
@@ -342,7 +318,6 @@
        (str)
        (mapv #(- (int %) 48))))
 
-(get-digits 1023)
 
 (defn is-sum-of-powers-of-digits? [num power]
   (->> num
@@ -353,11 +328,11 @@
        (= num)))
 
 ;; Anything beyond 6 * (9^5) cannot be expressed as a sum of powers of 5 of digits.
-(def max-sum-of-pw-of-five (* 6 (expt 9 5)))
-
-(->> (range 2 max-sum-of-pw-of-five)
-     (filter #(is-sum-of-powers-of-digits? % 5))
-     (apply +))
+(defn problem-30 []
+  (let [max-sum-of-pw-of-five (* 6 (expt 9 5))]
+    (->> (range 2 max-sum-of-pw-of-five)
+         (filter #(is-sum-of-powers-of-digits? % 5))
+         (apply +))))
 
 ; https://projecteuler.net/problem=31
 
@@ -372,7 +347,8 @@
            :else (+ (count-change amount (- kinds-of-coins 1))
                     (count-change (- amount (nth coins (dec kinds-of-coins))) kinds-of-coins))))))
 
-(count-change 200)
+(defn problem-31 []
+  (count-change 200))
 
 ; https://projecteuler.net/problem=32
 
@@ -383,15 +359,17 @@
        (.length)
        (= 9)))
 
-(->> (for [i (range 1 10000) j (range 1 10000)]
-       [i j])
-     (filter #(and (< (apply * %) 10000) (>= (apply * %) 1000)))
-     (reduce #(conj %1 %2 (apply * %2)) [])
-     (apply hash-map)
-     (filter is-pan-digital?)
-     (map second)
-     (distinct)
-     (apply +))
+(defn problem-32 []
+  (->> (for [i (range 1 10000)
+             j (range 1 10000)]
+         [i j])
+       (filter #(and (< (apply * %) 10000) (>= (apply * %) 1000)))
+       (reduce #(conj %1 %2 (apply * %2)) [])
+       (apply hash-map)
+       (filter is-pan-digital?)
+       (map second)
+       (distinct)
+       (apply +)))
 
 ; https://projecteuler.net/problem=33
 
@@ -411,16 +389,15 @@
         (= val (and (= (quot num 10) (quot denom 10))
                     (/ (mod num 10) (mod denom 10)))))))
 
-(is-curious-fraction? 11 22)
-
-(->> (for [numerator (skip-zero-range 10 100)
-           denominator (skip-zero-range 10 100)]
-       [numerator denominator])
-     (filter #(apply is-curious-fraction? %))
-     (filter #(not= (first %) (second %)))
-     (filter #(< (first %) (second %)))
-     (map #(apply / %))
-     (apply *))
+(defn problem-33 []
+  (->> (for [numerator (skip-zero-range 10 100)
+             denominator (skip-zero-range 10 100)]
+         [numerator denominator])
+       (filter #(apply is-curious-fraction? %))
+       (filter #(not= (first %) (second %)))
+       (filter #(< (first %) (second %)))
+       (map #(apply / %))
+       (apply *)))
 
 
 ; https://projecteuler.net/problem=34
@@ -443,9 +420,10 @@
        (apply +)))
 
 ;; Need only look until (* 7 (factorial 9)) (9! cannot catch 8 digit numbers.)
-(->> (range 3 (* 7 (memo-factorial 9)))
-     (filter #(= % (sum-fact-digits %)))
-     (apply +))
+(defn problem-34 []
+  (->> (range 3 (* 7 (memo-factorial 9)))
+       (filter #(= % (sum-fact-digits %)))
+       (apply +)))
 
 ; https://projecteuler.net/problem=35
 
@@ -462,11 +440,13 @@
 (defn is-circular-prime? [num]
   (every? prime? (rotations num)))
 
-(->> (range 2 1000000)
-     (filter is-circular-prime?)
-     (count))
+(defn problem-35 []
+  (->> (range 2 1000000)
+       (filter is-circular-prime?)
+       (count)))
 
 ;; https://projecteuler.net/problem=36
+
 (defn is-palindrome? [s length]
   (if (< length 2)
     true
@@ -474,16 +454,15 @@
       false
       (is-palindrome? (subs s 1 (dec length)) (- length 2)))))
 
-;; (is-palindrome? "drawa" 5)
-
 (defn is-palindrome-number? [num base]
   (let [num-str (Integer/toString num base)]
     (is-palindrome? num-str (.length num-str))))
 
-(time (->> (range 1 1000000)
-           (filter #(and (is-palindrome-number? % 2)
-                         (is-palindrome-number? % 10)))
-           (apply +)))
+(defn problem-36 []
+  (->> (range 1 1000000)
+       (filter #(and (is-palindrome-number? % 2)
+                     (is-palindrome-number? % 10)))
+       (apply +)))
 
 ;; https://projecteuler.net/problem=37
 
@@ -512,28 +491,31 @@
         all (map #(Integer. %) (concat sub-l sub-r))]
     (every? memo-prime? all)))
 
-(->> (range)
-     (drop 10)
-     (filter is-truncatable-prime?)
-     (take 11)
-     (apply +))
+(defn problem-37 []
+  (->> (range)
+       (drop 10)
+       (filter is-truncatable-prime?)
+       (take 11)
+       (apply +)))
 
 ;; https://projecteuler.net/problem=38
-(->>
- (for [i (range 1 10000)]
-   (->> (map #(range 1 %) (range 2 11))
-        (map #(map (partial * i) %))
-        (map #(apply str %))
-        (filter #(= (.length %) 9))))
- (remove empty?)
- (flatten)
- (map distinct)
- (map #(apply str %))
- (filter #(= (.length %) 9))
- (remove #(some #{\0} %))
- (map #(Integer. %))
- (sort >)
- (first))
+
+(defn problem-38 []
+  (->>
+   (for [i (range 1 10000)]
+     (->> (map #(range 1 %) (range 2 11))
+          (map #(map (partial * i) %))
+          (map #(apply str %))
+          (filter #(= (.length %) 9))))
+   (remove empty?)
+   (flatten)
+   (map distinct)
+   (map #(apply str %))
+   (filter #(= (.length %) 9))
+   (remove #(some #{\0} %))
+   (map #(Integer. %))
+   (sort >)
+   (first)))
 
 ;; https://projecteuler.net/problem=39
 
@@ -547,24 +529,26 @@
 ;; p^2 + 2b(a - p) - 2ap = 0
 ;; b = (p^2 - 2ap)/2(p-a)
 
-(->> (for [p (range 1 1000) a (range 1 p)] [p a])
-     (map (fn [[p a :as entry]]
-            (let [b (/ (- (* p p) (* 2 a p))
-                       (* 2 (- p a)))]
-              (if (pos-int? b)
-                (conj entry b)
-                nil))))
-     (map #(remove nil? %))
-     (remove empty?)
-     (map set)
-     (distinct)
-     (map #(apply vector %))
-     (map #(apply max %))
-     (frequencies)
-     (apply max-key val)
-     (key))
+(defn problem-39 []
+  (->> (for [p (range 1 1000) a (range 1 p)] [p a])
+       (map (fn [[p a :as entry]]
+              (let [b (/ (- (* p p) (* 2 a p))
+                         (* 2 (- p a)))]
+                (if (pos-int? b)
+                  (conj entry b)
+                  nil))))
+       (map #(remove nil? %))
+       (remove empty?)
+       (map set)
+       (distinct)
+       (map #(apply vector %))
+       (map #(apply max %))
+       (frequencies)
+       (apply max-key val)
+       (key)))
 
-;; https://projecteuler.net/problem=40`
+;; https://projecteuler.net/problem=40
+
 (defn char->int [ch]
   (- (int ch) 48))
 
@@ -579,9 +563,10 @@
   ([]
    (champernowne 1 0)))
 
-(->> [0 9 99 999 9999 99999 999999]
-     (map #(nth (champernowne) %))
-     (apply *))
+(defn problem-40 []
+  (->> [0 9 99 999 9999 99999 999999]
+       (map #(nth (champernowne) %))
+       (apply *)))
 
 ; https://projecteuler.net/problem=41
 ;; Create a function to check if a number is pandigital because we are seeing this a lot.
@@ -601,20 +586,20 @@
             (= num-digits (count digits))
             (apply distinct? digits))))
 
-(is-pandigital? 1234 4)
-
 ;; There's no need to use is-pandigital if we generate pan-digital permuatations in the first place.
-(->> (range 1 9)
-     (map #(range 1 (inc %)))
-     (map #(permutations %))
-     (mapcat identity)
-     (map #(map (fn [i] (char (+ 48 i))) %))
-     (map #(apply str %))
-     (map #(Integer. %))
-     (filter memo-prime?)
-     (apply max))
+(defn problem-41 []
+  (->> (range 1 9)
+       (map #(range 1 (inc %)))
+       (map #(permutations %))
+       (mapcat identity)
+       (map #(map (fn [i] (char (+ 48 i))) %))
+       (map #(apply str %))
+       (map #(Integer. %))
+       (filter memo-prime?)
+       (apply max)))
 
 ; https://projecteuler.net/problem=42
+
 (defn gen-triangle-numbers 
   ([n]
    (lazy-seq (cons (/ (* n (inc n)) 2)
@@ -622,24 +607,24 @@
   ([]
    (gen-triangle-numbers 1)))
 
-(def p42-tri-numbers
-  (set (take-while #(< % 1000) (gen-triangle-numbers))))
-
 (defn word-value [word]
   (->> word
        (map #(- (int %) 64))
        (apply +)))
 
-(->> (str/split (slurp "p042_words.txt") #",")
-     (map (fn [s]
-            (apply str (remove #(= \" %) s))))
-     (map word-value)
-     ;; max is 416 so we are safe with < 1000 val tri numbers
-    ;  (apply max))
-    (filter p42-tri-numbers)
-    (count))
+(defn problem-42 []
+  (let [p42-tri-numbers (set (take-while #(< % 1000) (gen-triangle-numbers)))]
+    (->> (str/split (slurp "p042_words.txt") #",")
+         (map (fn [s]
+                (apply str (remove #(= \" %) s))))
+         (map word-value)
+         ;; max is 416 so we are safe with < 1000 val tri numbers
+                                        ;  (apply max))
+         (filter p42-tri-numbers)
+         (count))))
 
 ;; https://projecteuler.net/problem=43
+
 (defn num-from-list [l]
   (->> l
        (reverse)
@@ -657,12 +642,13 @@
        (map #(/ %2 %1) [2 3 5 7 11 13 17])
        (every? int?)))
 
-(->> (range 0 10)
-     (permutations)
-     (remove #(= (first %) 0))
-     (filter sub-string-divisibility)
-     (map num-from-list)
-     (apply +))
+(defn problem-43 []
+  (->> (range 0 10)
+       (permutations)
+       (remove #(= (first %) 0))
+       (filter sub-string-divisibility)
+       (map num-from-list)
+       (apply +)))
 
 ;; https://projecteuler.net/problem=44
 
@@ -673,22 +659,23 @@
   ([]
    (gen-pentagonal-numbers 1)))
 
-(def p44-pentagonals (->> (gen-pentagonal-numbers)
-                          (take 1000000)
-                          (apply sorted-set)))
-
-(defn p44-criteria-lz [n]
-  (lazy-seq
-   (let [pk (/ (* n (- (* 3 n) 1)) 2)
-         pjs (take-while #(< % pk) p44-pentagonals)
-         matches (->> pjs
-                      (map #(vector (+ pk %) (Math/abs (- pk %))))
-                      (filter #(and (p44-pentagonals (first %)) (p44-pentagonals (second %)))))]
-     (if (empty? matches)
-       (p44-criteria-lz (inc n))
-       (cons (second (first matches)) (p44-criteria-lz (inc n)))))))
-
-(first (take 1 (p44-criteria-lz 1)))
+(defn problem-44 []
+  (let [p44-pentagonals (->> (gen-pentagonal-numbers)
+                             (take 1000000)
+                             (apply sorted-set))]
+    (letfn [(p44-criteria-lz [n]
+              (lazy-seq
+               (let [pk (/ (* n (- (* 3 n) 1)) 2)
+                     pjs (take-while #(< % pk) p44-pentagonals)
+                     matches (->> pjs
+                                  (map #(vector (+ pk %) (Math/abs (- pk %))))
+                                  (filter #(and (p44-pentagonals (first %)) (p44-pentagonals (second %)))))]
+                 (if (empty? matches)
+                   (p44-criteria-lz (inc n))
+                   (cons (second (first matches)) (p44-criteria-lz (inc n)))))))]
+      (->> (p44-criteria-lz 1)
+           (take 1)
+           (first)))))
 
 ; https://projecteuler.net/problem=45
 
@@ -703,14 +690,16 @@
 (def pentagonal-numbers (lazy-seq-gen #(/ (* % (- (* 3 %) 1)) 2)))
 (def hexagonal-numbers (lazy-seq-gen #(* % (- (* 2 %) 1))))
 
-(let [sz 10000000000
-      make-set (fn [generator]
-                 (apply sorted-set (take-while #(< % sz) generator)))
-      tn (make-set triangle-numbers)
-      pn (make-set pentagonal-numbers)
-      hn (make-set hexagonal-numbers)]
-     (nth (filter #(and (pn %) (hn %)) tn)
-          2))
+(defn problem-45 []
+  (let [sz 10000000000
+        make-set (fn [generator]
+                   (apply sorted-set (take-while #(< % sz) generator)))
+        tn (make-set triangle-numbers)
+        pn (make-set pentagonal-numbers)
+        hn (make-set hexagonal-numbers)]
+    (nth
+     (filter #(and (pn %) (hn %)) tn)
+     2)))
 
 ; https://projecteuler.net/problem=46
 
@@ -732,13 +721,14 @@
        (map #(- num (* 2 % %)))
        (remove neg?)))
 
-(->> (iterate (partial + 2) 3)
-     (remove memo-prime?)
-     (map #(vector % (double-squares-less-than-minus %)))
-     (filter #(not-any? memo-prime? (second %)))
-     (take 1)
-     (ffirst))
-     
+(defn problem-46 []
+  (->> (iterate (partial + 2) 3)
+       (remove memo-prime?)
+       (map #(vector % (double-squares-less-than-minus %)))
+       (filter #(not-any? memo-prime? (second %)))
+       (take 1)
+       (ffirst)))
+
 ; https://projecteuler.net/problem=47
 
 ;; https://en.wikipedia.org/wiki/Euclidean_algorithm
@@ -756,23 +746,25 @@
 (defn prime-factors-of [n]
   (distinct (factors-starting-at 2 n)))
 
-(defn gen-adjacent-nums 
+(defn gen-adjacent-nums
   ([n count]
    (lazy-seq (cons (map (partial + n) (range 0 count))
                    (gen-adjacent-nums (inc n) count))))
   ([count]
    (gen-adjacent-nums 1 count)))
 
-(->> (gen-adjacent-nums 4)
-     (map #(vector % (map prime-factors-of %)))
-     (filter #(every? (fn [x] (= (count x) 4)) (second %)))
-     (take 1))
+(defn problem-47 []
+  (->> (gen-adjacent-nums 4)
+       (map #(vector % (map prime-factors-of %)))
+       (filter #(every? (fn [x] (= (count x) 4)) (second %)))
+       (take 1)))
 
 ; https://projecteuler.net/problem=48
 
 ; I can just use bignums here. Let's try the hard way.
 ; https://en.wikipedia.org/wiki/Modular_exponentiation#Memory-efficient_method
-(defn exp-modulo 
+
+(defn exp-modulo
   ([c e' b e m]
    (if (>= e' e)
      c
@@ -780,10 +772,11 @@
   ([b e m]
    (exp-modulo 1 0 b e m)))
 
-(mod (->> (range 1 1001)
-          (map #(exp-modulo % % 10000000000))
-          (apply +))
-     10000000000)
+(defn problem-48 []
+  (mod (->> (range 1 1001)
+            (map #(exp-modulo % % 10000000000))
+            (apply +))
+       10000000000))
 
 ; https://projecteuler.net/problem=49
 
@@ -799,27 +792,29 @@
 (defn are-permutations-of-each-other? [num1 num2]
   (= (sort (get-digits num1)) (sort (get-digits num2))))
 
-(let [four-digit-primes (->> (gen-primes)
-                             (drop-while #(< % 1000))
-                             (take-while #(< % 10000))
-                             (apply sorted-set))]
-  (->> (for [i four-digit-primes
-             j four-digit-primes]
-         [i j])
-       (remove #(apply = %))
-       (filter #(apply are-permutations-of-each-other? %))
-       (filter (fn [[n1 n2]]
-                 (let [mx (max n1 n2)
-                       mn (min n1 n2) 
-                       diff (- mx mn)
-                       next (+ mx diff)]
-                   (and (< next 10000)
-                        (four-digit-primes next)
-                        (are-permutations-of-each-other? n1 next)))))
-       (map sort)
-       (distinct)
-       (map #(cons (+ (second %) (- (second %) (first %))) %))
-       (map sort)
-       (map #(map str %))
-       (map (partial apply str))
-       (second)))
+(defn problem-49 []
+  (let [four-digit-primes (->> (gen-primes)
+                               (drop-while #(< % 1000))
+                               (take-while #(< % 10000))
+                               (apply sorted-set))]
+    (->> (for [i four-digit-primes
+               j four-digit-primes]
+           [i j])
+         (remove #(apply = %))
+         (filter #(apply are-permutations-of-each-other? %))
+         (filter (fn [[n1 n2]]
+                   (let [mx (max n1 n2)
+                         mn (min n1 n2) 
+                         diff (- mx mn)
+                         next (+ mx diff)]
+                     (and (< next 10000)
+                          (four-digit-primes next)
+                          (are-permutations-of-each-other? n1 next)))))
+         (map sort)
+         (distinct)
+         (map #(cons (+ (second %) (- (second %) (first %))) %))
+         (map sort)
+         (map #(map str %))
+         (map (partial apply str))
+         (second))))
+
