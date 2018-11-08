@@ -784,3 +784,42 @@
           (map #(exp-modulo % % 10000000000))
           (apply +))
      10000000000)
+
+; https://projecteuler.net/problem=49
+
+(defn get-digits [num]
+  (->> [num []]
+     (iterate (fn [[num digits]]
+                (when (> num 0)
+                  [(quot num 10) (conj digits (rem num 10))])))
+     (take-while some?)
+     (last)
+     (second)))
+
+(defn are-permutations-of-each-other? [num1 num2]
+  (= (sort (get-digits num1)) (sort (get-digits num2))))
+
+(let [four-digit-primes (->> (gen-primes)
+                             (drop-while #(< % 1000))
+                             (take-while #(< % 10000))
+                             (apply sorted-set))]
+  (->> (for [i four-digit-primes
+             j four-digit-primes]
+         [i j])
+       (remove #(apply = %))
+       (filter #(apply are-permutations-of-each-other? %))
+       (filter (fn [[n1 n2]]
+                 (let [mx (max n1 n2)
+                       mn (min n1 n2) 
+                       diff (- mx mn)
+                       next (+ mx diff)]
+                   (and (< next 10000)
+                        (four-digit-primes next)
+                        (are-permutations-of-each-other? n1 next)))))
+       (map sort)
+       (distinct)
+       (map #(cons (+ (second %) (- (second %) (first %))) %))
+       (map sort)
+       (map #(map str %))
+       (map (partial apply str))
+       (second)))
