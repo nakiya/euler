@@ -503,18 +503,6 @@
 ;;                         2 6 6 4 2 4 6 2 6 4 2 4 2 10 2 10])]
 ;;       (primes-from 11 wheel)))))
 
-;; Taken from https://stackoverflow.com/a/7625207/466694
-;; (defn gen-primes "Generates an infinite, lazy sequence of prime numbers"
-;;   []
-;;   (let [reinsert (fn [table x prime]
-;;                    (update-in table [(+ prime x)] conj prime))]
-;;     (defn primes-step [table d]
-;;       (if-let [factors (get table d)]
-;;         (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
-;;                (inc d))
-;;         (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
-;;                                        (inc d))))))
-;;     (primes-step {} 2)))
 
 (defn is-truncatable-prime? [num]
   (let [s (str num)
@@ -702,3 +690,97 @@
 
 (first (take 1 (p44-criteria-lz 1)))
 
+; https://projecteuler.net/problem=45
+
+(defn lazy-seq-gen
+  ([f n]
+   (lazy-seq (cons (f n)
+                   (lazy-seq-gen f (inc n)))))
+  ([f]
+   (lazy-seq-gen f 1)))
+
+(def triangle-numbers (lazy-seq-gen #(/ (* % (+ % 1)) 2)))
+(def pentagonal-numbers (lazy-seq-gen #(/ (* % (- (* 3 %) 1)) 2)))
+(def hexagonal-numbers (lazy-seq-gen #(* % (- (* 2 %) 1))))
+
+(let [sz 10000000000
+      make-set (fn [generator]
+                 (apply sorted-set (take-while #(< % sz) generator)))
+      tn (make-set triangle-numbers)
+      pn (make-set pentagonal-numbers)
+      hn (make-set hexagonal-numbers)]
+     (nth (filter #(and (pn %) (hn %)) tn)
+          2))
+
+; https://projecteuler.net/problem=46
+
+; ;; Taken from https://stackoverflow.com/a/7625207/466694
+(defn gen-primes "Generates an infinite, lazy sequence of prime numbers"
+  []
+  (let [reinsert (fn [table x prime]
+                   (update-in table [(+ prime x)] conj prime))]
+    (defn primes-step [table d]
+      (if-let [factors (get table d)]
+        (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
+               (inc d))
+        (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
+                                       (inc d))))))
+    (primes-step {} 2)))
+
+(defn double-squares-less-than-minus [num]
+  (->> (range 1 (inc (int (Math/sqrt num))))
+       (map #(- num (* 2 % %)))
+       (remove neg?)))
+
+(->> (iterate (partial + 2) 3)
+     (remove memo-prime?)
+     (map #(vector % (double-squares-less-than-minus %)))
+     (filter #(not-any? memo-prime? (second %)))
+     (take 1)
+     (ffirst))
+     
+; https://projecteuler.net/problem=47
+
+;; https://en.wikipedia.org/wiki/Euclidean_algorithm
+
+(defn divides? [num div]
+  (= 0 (rem num div)))
+
+;; Copied from https://gist.github.com/unclebob/632303 and modified
+(defn factors-starting-at [num div]
+  (cond
+    (> div (Math/sqrt num)) (if (= n 1) [] [n])
+    (divides? num div) (cons div (factors-starting-at div (/ num div)))
+    :else (recur (inc div) num)))
+
+(defn prime-factors-of [n]
+  (distinct (factors-starting-at 2 n)))
+
+(defn gen-adjacent-nums 
+  ([n count]
+   (lazy-seq (cons (map (partial + n) (range 0 count))
+                   (gen-adjacent-nums (inc n) count))))
+  ([count]
+   (gen-adjacent-nums 1 count)))
+
+(->> (gen-adjacent-nums 4)
+     (map #(vector % (map prime-factors-of %)))
+     (filter #(every? (fn [x] (= (count x) 4)) (second %)))
+     (take 1))
+
+; https://projecteuler.net/problem=48
+
+; I can just use bignums here. Let's try the hard way.
+; https://en.wikipedia.org/wiki/Modular_exponentiation#Memory-efficient_method
+(defn exp-modulo 
+  ([c e' b e m]
+   (if (>= e' e)
+     c
+     (recur (mod (* b c) m) (inc e') b e m)))
+  ([b e m]
+   (exp-modulo 1 0 b e m)))
+
+(mod (->> (range 1 1001)
+          (map #(exp-modulo % % 10000000000))
+          (apply +))
+     10000000000)
