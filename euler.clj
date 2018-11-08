@@ -818,3 +818,24 @@
          (map (partial apply str))
          (second))))
 
+; https://projecteuler.net/problem=49
+
+;; Any consecutive run of prime numbers, the sum of which results in a prime has to be odd-length
+
+(defn problem-50 []
+  (let [limit 1000000
+        is-prime? (->> (gen-primes)
+                       (take-while (partial > limit))
+                       (set))
+        sums (->> (gen-primes)
+                  (take-while #(< % limit))
+                  (reduce #(vector (conj (first %1) (second %1)) (+ (second %1) %2))
+                          [[] 0])
+                  (first)
+                  (take-while #(< % limit)))]
+    (->> (for [i (range (count sums))
+               j (range i (count sums))]
+           (vector (- (nth sums j) (nth sums i)) (- j i) {:i i :j j}))
+         (filter #(is-prime? (first %)))
+         (sort-by second >)
+         (first))))
