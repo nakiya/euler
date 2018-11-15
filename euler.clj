@@ -818,7 +818,7 @@
          (map (partial apply str))
          (second))))
 
-; https://projecteuler.net/problem=49
+; https://projecteuler.net/problem=50
 
 ;; Any consecutive run of prime numbers, the sum of which results in a prime has to be odd-length
 
@@ -838,4 +838,29 @@
            (vector (- (nth sums j) (nth sums i)) (- j i) {:i i :j j}))
          (filter #(is-prime? (first %)))
          (sort-by second >)
+         (first))))
+
+; https://projecteuler.net/problem=51
+
+(defn get-neighbors [num]
+  (let [str-num (str num)
+        res
+        (for [digit ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"]]
+          (when (str/includes? str-num digit)
+            [(for [replacement ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"]]
+              (Integer. (str/replace str-num digit replacement))) num]))]
+       (filter some? res)))
+
+(defn problem-51 []
+  (let [primes (->> (gen-primes)
+                    (take-while #(< % 1000000))
+                    (apply sorted-set))]
+    (->> primes
+         (map get-neighbors)
+         (mapcat identity)
+         (map (fn [[l num]] (vector (filter primes l) num)))
+         (filter (fn [[l num]] (< 7 (count l))))
+         (filter (fn [[l num]] (apply = (map #(.length (str %)) l))))
+         (map second)
+         (sort <)
          (first))))
