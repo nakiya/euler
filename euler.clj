@@ -864,3 +864,13 @@
          (map second)
          (sort <)
          (first))))
+
+; https://projecteuler.net/problem=52
+
+(defn problem-52
+  (->> (range)
+     (drop 1)
+     (map #(map * [1 2 3 4 5 6] (repeat %)))
+     (filter (fn [list] (apply = (map #(sort (get-digits %)) list))))
+     (ffirst)))
+
