@@ -874,3 +874,16 @@
      (filter (fn [list] (apply = (map #(sort (get-digits %)) list))))
      (ffirst)))
 
+; https://projecteuler.net/problem=53
+
+(defn n-C-r [n r]
+  (/ (factorial n)
+     (* (factorial r) (factorial (- n r)))))
+
+(defn problem-52 []
+  (->> (for [n (range 23 101)
+             r (range 0 (inc n))]
+         [n r])
+       (map #(apply n-C-r %))
+       (filter #(< 1000000 %))
+       (count)))
