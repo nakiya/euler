@@ -887,3 +887,186 @@
        (map #(apply n-C-r %))
        (filter #(< 1000000 %))
        (count)))
+
+; https://projecteuler.net/problem=54
+
+(defn consecutive? [nums]
+  (->> (sort nums)
+       (reduce #(vector (conj (first %1) (- %2 (second %1))) %2)
+               [[] (dec (first nums))])
+       (first)
+       (apply =)))
+
+(defn card-order-greater [c1 c2]
+  (> (first c1) (first c2)))
+
+(defn same-suit? [cards]
+  (apply = (map second cards)))
+
+(defn royal-flush? [hand]
+       (and (same-suit? hand)
+            (= (ffirst hand) 10)
+            (consecutive? (map first hand))
+            (sort card-order-greater hand)))
+
+; (royal-flush? [[10 :H] [11 :H] [12 :H] [13 :H] [14 :H]])
+; (royal-flush? [[9 :H] [10 :H] [11 :H] [12 :H] [13 :H]])
+
+(defn straight-flush? [hand]
+  (and (same-suit? hand)
+       (consecutive? (map first hand))
+       (sort card-order-greater hand)))
+
+; (straight-flush? [[10 :H] [11 :H] [12 :H] [13 :H] [14 :H]])
+; (straight-flush? [[9 :H] [10 :H] [11 :H] [12 :H] [13 :H]])
+; (straight-flush? [[8 :H] [10 :H] [11 :H] [12 :H] [13 :H]])
+
+(defn are-all-equal-nums? [subhand]
+  (apply = (map first subhand)))
+
+(defn add-other-cards [hand subset]
+  (concat (apply vector subset) (sort card-order-greater (cs/difference (set hand) (set subset)))))
+
+(defn four-of-a-kind? [hand]
+  (let [foak (->> (combo/combinations hand 4)
+                  (filter are-all-equal-nums?)
+                  (first))]
+       (when foak
+             (add-other-cards hand foak))))
+
+; (four-of-a-kind? [[10 :H] [11 :H] [12 :H] [13 :H] [14 :H]])
+; (four-of-a-kind? [[12 :H] [10 :H] [10 :S] [10 :D] [10 :C]])
+
+(defn split-to-two-and-three [hand]
+  (->> (combo/combinations hand 2)
+       (map #(list % (vec (cs/difference (set hand) (set %)))))))
+
+; (split-to-two-and-three [[10 :H] [11 :H] [12 :H] [13 :H] [14 :H]])
+
+(defn full-house? [hand]
+  (let [fh (->> (split-to-two-and-three hand)
+                (filter #(every? are-all-equal-nums? %))
+                (first))]
+       (when fh
+             (apply concat (reverse fh)))))
+
+; (full-house? [[12 :H] [12 :S] [10 :S] [10 :D] [10 :C]])
+; (full-house? [[12 :H] [12 :S] [9 :S] [10 :D] [10 :C]])
+; (full-house? [[10 :H] [12 :S] [12 :S] [10 :D] [10 :C]])
+; (full-house? [[10 :H] [12 :S] [9 :S] [5 :D] [10 :C]])
+
+(defn flush? [hand]
+  (and (same-suit? hand)
+       (sort card-order-greater hand)))
+
+; (flush? [[8 :H] [11 :H] [6 :H] [13 :H] [14 :H]])
+; (flush? [[10 :H] [11 :S] [12 :H] [13 :H] [14 :H]])
+
+(defn straight? [hand]
+  (and (consecutive? (map first hand))
+       (sort card-order-greater hand)))
+
+; (straight? [[10 :H] [11 :H] [12 :H] [13 :H] [14 :H]])
+; (straight? [[10 :H] [10 :S] [12 :H] [13 :H] [14 :H]])
+
+(defn three-of-a-kind? [hand]
+  (let [toak (->> (split-to-two-and-three hand)
+                  (map second)
+                  (filter are-all-equal-nums?)
+                  (first))]
+       (when toak
+             (add-other-cards hand toak))))
+
+; (three-of-a-kind? [[10 :H] [10 :S] [12 :D] [10 :C] [14 :H]])
+; (three-of-a-kind? [[10 :H] [10 :S] [12 :H] [13 :H] [14 :H]])
+
+(defn two-pairs? [hand]
+  (let [splits (->> (split-to-two-and-three hand)
+                    (filter #(and (are-all-equal-nums? (first %))
+                                  (->> (combo/combinations (second %) 2)
+                                       (map are-all-equal-nums?)
+                                       (some true?))))
+                    (first))
+        tp (when splits
+             (vector (first splits)
+                     (first (filter are-all-equal-nums? (combo/combinations (second splits) 2)))))]
+       (when tp
+         (->> tp
+              (apply concat)
+              (sort card-order-greater)
+              (add-other-cards hand)))))
+
+; (two-pairs? [[10 :H] [10 :S] [12 :D] [9 :C] [14 :H]])
+; (two-pairs? [[10 :H] [10 :S] [12 :H] [14 :H] [14 :C]])
+
+(defn one-pair? [hand]
+  (let [op (->> (combo/combinations hand 2)
+                (filter are-all-equal-nums?)
+                (first))]
+       (when op
+             (add-other-cards hand op))))
+
+; (one-pair? [[10 :H] [10 :S] [12 :D] [9 :C] [14 :H]])
+; (one-pair? [[10 :H] [11 :S] [12 :H] [4 :H] [14 :C]])
+
+;; Taken from internet
+(defmacro cond-let
+  "An implementation of cond-let that is as similar as possible to if-let. Takes multiple
+  test-binding/then-form pairs and evalutes the form if the binding is true. Also supports
+  :else in the place of test-binding and always evaluates the form in that case.
+ 
+  Example:
+   (cond-let [b (bar 1 2 3)] (println :bar b)
+             [f (foo 3 4 5)] (println :foo f)
+             [b (baz 6 7 8)] (println :baz b)
+             :else           (println :no-luck))"
+  [test-binding then-form & more]
+  (let [test-binding (if (= :else test-binding) `[t# true] test-binding)
+        else-form    (when (seq more) `(cond-let ~@more))]
+    `(if-let ~test-binding
+       ~then-form
+       ~else-form)))
+
+(defn hand-type [hand]
+  (cond-let [rf (royal-flush? hand)] [9 rf]
+            [sf (straight-flush? hand)] [8 sf]
+            [foak (four-of-a-kind? hand)] [7 foak]
+            [fh (full-house? hand)] [6 fh]
+            [f (flush? hand)] [5 f]
+            [s (straight? hand)] [4 s]
+            [toak (three-of-a-kind? hand)] [3 toak]
+            [tp (two-pairs? hand)] [2 tp]
+            [op (one-pair? hand)] [1 op]
+            :else [0 (sort card-order-greater hand)]))
+
+(defn is-player1-winner-same-type? [det1 det2]
+  (do
+    (when (not= 5 (count det1) (count det2))
+          (println "Not same size. det1 = " det1 ", det2 = " det2))
+    (= 1
+       (compare (apply vector (map first det1))
+                (apply vector (map first det2))))))
+
+(defn is-player1-winner? [hand1 hand2]
+  (let [[res1 det1] (hand-type hand1)
+        [res2 det2] (hand-type hand2)
+        p1-winner (cond (= res1 res2) (is-player1-winner-same-type? det1 det2)
+                        (> res1 res2) true
+                        :else false)]
+    (do
+      ; (println "Winner = " (if p1-winner "p1" "p2") "... Rank1 = " res1 ", Rank2 = " res2 ", det1 = " det1 ", det2 = " det2)
+      p1-winner)))
+
+(defn p54 []
+  (->> (str/split (slurp "p054_poker.txt") #"\s")
+       (map (fn [s]
+              (vector (nth s 0) (nth s 1))))
+       (map (fn [[s-num s-suite]]
+              (vector (case s-num
+                        \2 2 \3 3 \4 4 \5 5 \6 6 \7 7 \8 8 \9 9 \T 10 \J 11 \Q 12 \K 13 \A 14)
+                      (keyword (str s-suite)))))
+       (partition 10)
+       (map #(partition 5 %))
+       (filter (fn [[hand1 hand2]]
+                 (is-player1-winner? hand1 hand2)))
+       count))
