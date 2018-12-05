@@ -1104,7 +1104,7 @@
   ([num]
    (is-lychrel? (bigint num) 0)))
 
-(defn problem-54 []
+(defn problem-55 []
   (->> (range 1 10000)
        (filter is-lychrel?)
        (count)))
