@@ -880,16 +880,31 @@
   (/ (factorial n)
      (* (factorial r) (factorial (- n r)))))
 
-(defn problem-52 []
+(defn problem-53 []
   (->> (for [n (range 23 101)
              r (range 0 (inc n))]
          [n r])
        (map #(apply n-C-r %))
        (filter #(< 1000000 %))
        (count)))
-
+    
 ; https://projecteuler.net/problem=54
 
+;; Typical hand
+; [[10 :clubs] [:jack :diamonds] [6 :clubs] [4 :hearts] [:ace :hearts]]
+
+(def test-hands [[[[5 :H] [5 :C] [6 :S] [7 :S] [13 :D]]
+                  [[2 :C] [3 :S] [8 :S] [8 :D] [10 :D]]]
+                 [[[5 :D] [8 :C] [9 :S] [1 :S] [14 :C]]
+                  [[2 :C] [5 :C] [7 :D] [8 :S] [12 :H]]]
+                 [[[2 :D] [9 :C] [14 :S] [14 :H] [14 :C]]
+                  [[3 :D] [6 :D] [7 :D] [10 :D] [12 :D]]]
+                 [[[4 :D] [6 :S] [9 :H] [12 :H] [12 :C]]
+                  [[3 :D] [6 :D] [7 :H] [12 :D] [12 :S]]]
+                 [[[2 :H] [2 :D] [4 :C] [4 :D] [4 :S]]
+                  [[3 :C] [3 :D] [3 :S] [9 :S] [9 :D]]]])
+
+; (defn consecutive? [nums]
 (defn consecutive? [nums]
   (let [sorted-nums (sort nums)
         res (reduce (fn [[last-num diffs] next-num]
@@ -1056,7 +1071,7 @@
       ; (println "Winner = " (if p1-winner "p1" "p2") "... Rank1 = " res1 ", Rank2 = " res2 ", det1 = " det1 ", det2 = " det2)
       p1-winner)))
 
-(defn p54 []
+(defn problem-54 []
   (->> (str/split (slurp "p054_poker.txt") #"\s")
        (map (fn [s]
               (vector (nth s 0) (nth s 1))))
@@ -1089,6 +1104,7 @@
   ([num]
    (is-lychrel? (bigint num) 0)))
 
-(->> (range 1 10000)
-     (filter is-lychrel?)
-     (count))
+(defn problem-54 []
+  (->> (range 1 10000)
+       (filter is-lychrel?)
+       (count)))
