@@ -891,11 +891,13 @@
 ; https://projecteuler.net/problem=54
 
 (defn consecutive? [nums]
-  (->> (sort nums)
-       (reduce #(vector (conj (first %1) (- %2 (second %1))) %2)
-               [[] (dec (first nums))])
-       (first)
-       (apply =)))
+  (let [sorted-nums (sort nums)
+        res (reduce (fn [[last-num diffs] next-num]
+                      (vector next-num (conj diffs (- next-num last-num))))
+                    (vector (dec (first sorted-nums))
+                            [])
+                    sorted-nums)]
+    (apply = 1 (second res))))
 
 (defn card-order-greater [c1 c2]
   (> (first c1) (first c2)))
@@ -966,7 +968,7 @@
   (and (consecutive? (map first hand))
        (sort card-order-greater hand)))
 
-; (straight? [[10 :H] [11 :H] [12 :H] [13 :H] [14 :H]])
+(straight? [[11 :H] [12 :H] [13 :H] [10 :H] [14 :H]])
 ; (straight? [[10 :H] [10 :S] [12 :H] [13 :H] [14 :H]])
 
 (defn three-of-a-kind? [hand]
@@ -1040,12 +1042,9 @@
             :else [0 (sort card-order-greater hand)]))
 
 (defn is-player1-winner-same-type? [det1 det2]
-  (do
-    (when (not= 5 (count det1) (count det2))
-          (println "Not same size. det1 = " det1 ", det2 = " det2))
-    (= 1
-       (compare (apply vector (map first det1))
-                (apply vector (map first det2))))))
+  (= 1
+     (compare (apply vector (map first det1))
+              (apply vector (map first det2)))))
 
 (defn is-player1-winner? [hand1 hand2]
   (let [[res1 det1] (hand-type hand1)
@@ -1070,3 +1069,26 @@
        (filter (fn [[hand1 hand2]]
                  (is-player1-winner? hand1 hand2)))
        count))
+
+; https://projecteuler.net/problem=55
+
+(defn reverse-number [num]
+  (->> (str num)
+       (reverse)
+       (apply str)
+       (bigint)))
+
+(defn is-lychrel?
+  ([num iteration]
+   (if (> iteration 50)
+     true
+     (let [next-num (+ num (reverse-number num))]
+       (if (is-palindrome-number? next-num)
+         false
+         (recur next-num (inc iteration))))))
+  ([num]
+   (is-lychrel? (bigint num) 0)))
+
+(->> (range 1 10000)
+     (filter is-lychrel?)
+     (count))
