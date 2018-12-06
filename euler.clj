@@ -1,5 +1,7 @@
 (ns eul
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.set :as cs]
+            [clojure.math.combinatorics :as combo]))
 
 ; https://projecteuler.net/problem=1
 (defn problem-1 []
@@ -239,21 +241,21 @@
 
 ; https://projecteuler.net/problem=27
 
-(defn smallest-divisor [n]
-  (letfn [(divides? [n divisor] (= 0 (mod n divisor)))
-          (find-divisor [n test-divisor]
-                        (cond (> (* test-divisor test-divisor) n) n
-                              (divides? n test-divisor) test-divisor
-                              :else (find-divisor n (+ 1 test-divisor))))]
-    (find-divisor n 2)))
+(defn divides? [n divisor] (= 0 (mod n divisor)))
 
-(defn prime? [n]
-  (if (neg? n)
-    false
-    (= n (smallest-divisor n))))
+(def find-divisor
+  (memoize
+   (fn [n test-divisor]
+     (cond (> (* test-divisor test-divisor) n) n
+           (= 0 (mod n test-divisor)) test-divisor
+           :else (recur n (+ 1 test-divisor))))))
 
-(def memo-prime?
-  (memoize prime?))
+(def prime?
+  (memoize
+   (fn [n]
+     (if (neg? n)
+       false
+       (= n (find-divisor n 2))))))
 
 (defn quadratic-vals
   ([a b n]
@@ -408,20 +410,20 @@
      prod
      (recur (dec x) (* prod x))))
   ([x]
-   (factorial x 1)))
+   (factorial x (biginteger 1))))
 
-(def memo-factorial (memoize factorial))
+(def factorial (memoize factorial))
 
 (defn sum-fact-digits [num]
   (->> num
        (str)
        (map #(- (int %) 48))
-       (map memo-factorial)
+       (map factorial)
        (apply +)))
 
 ;; Need only look until (* 7 (factorial 9)) (9! cannot catch 8 digit numbers.)
 (defn problem-34 []
-  (->> (range 3 (* 7 (memo-factorial 9)))
+  (->> (range 3 (* 7 (factorial 9)))
        (filter #(= % (sum-fact-digits %)))
        (apply +)))
 
@@ -455,8 +457,12 @@
       (is-palindrome? (subs s 1 (dec length)) (- length 2)))))
 
 (defn is-palindrome-number? [num base]
-  (let [num-str (Integer/toString num base)]
+  (let [num-str (Integer/parseInt num base)]
     (is-palindrome? num-str (.length num-str))))
+
+(defn is-palindrome-number? [num]
+  (let [num-str (str num)]
+       (is-palindrome? num-str (.length num-str))))
 
 (defn problem-36 []
   (->> (range 1 1000000)
@@ -706,14 +712,14 @@
 ; ;; Taken from https://stackoverflow.com/a/7625207/466694
 (defn gen-primes "Generates an infinite, lazy sequence of prime numbers"
   []
-  (let [reinsert (fn [table x prime]
-                   (update-in table [(+ prime x)] conj prime))]
-    (defn primes-step [table d]
-      (if-let [factors (get table d)]
-        (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
-               (inc d))
-        (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
-                                       (inc d))))))
+  (letfn [(reinsert (fn [table x prime]
+                      (update-in table [(+ prime x)] conj prime)))
+          (primes-step [table d]
+                       (if-let [factors (get table d)]
+                         (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
+                                (inc d))
+                         (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
+                                                        (inc d))))))]
     (primes-step {} 2)))
 
 (defn double-squares-less-than-minus [num]
@@ -781,13 +787,10 @@
 ; https://projecteuler.net/problem=49
 
 (defn get-digits [num]
-  (->> [num []]
-     (iterate (fn [[num digits]]
-                (when (> num 0)
-                  [(quot num 10) (conj digits (rem num 10))])))
-     (take-while some?)
-     (last)
-     (second)))
+  (->> num
+       (str)
+       (map #(- (int %) 48))
+       (into '())))
 
 (defn are-permutations-of-each-other? [num1 num2]
   (= (sort (get-digits num1)) (sort (get-digits num2))))
@@ -842,6 +845,7 @@
 
 ; https://projecteuler.net/problem=51
 
+
 (defn get-neighbors [num]
   (let [str-num (str num)
         res
@@ -864,6 +868,7 @@
          (map second)
          (sort <)
          (first))))
+
 
 ; https://projecteuler.net/problem=52
 
@@ -1108,3 +1113,51 @@
   (->> (range 1 10000)
        (filter is-lychrel?)
        (count)))
+
+; https://projecteuler.net/problem=56
+
+(defn b-pow [a b]
+  (nth (iterate #(* a %) (bigint a)) (dec b)))
+
+(defn problem-56 []
+  (->> (for [a (range 1 100)
+             b (range 1 100)]
+         (b-pow a b))
+       (map sum-digits)
+       (sort >)
+       (first)))
+
+
+; https://projecteuler.net/problem=57
+
+(def sqrt-denom
+  (memoize 
+   (fn [iterations]
+     (/ 1 (if (= iterations 0)
+            2
+            (+ 2 (sqrt-denom (dec iterations))))))))
+
+(defn problem-57 []
+  (->> (range 1000)
+       (map (comp inc sqrt-denom))
+       (map #(vector (numerator %) (denominator %)))
+       (map #(map str %))
+       (filter #(> (.length (first %)) (.length (second %))))
+       (count)))
+
+; https://projecteuler.net/problem=58
+
+(defn problem-58 []
+  (let [ltt (->> (diagonal-vals)
+                 (take 15000)
+                 (map #(count (filter prime? %)))
+                 (reduce (fn [coll el]
+                           (conj coll (+ (first coll) el)))
+                         '(0))
+                 (reverse)
+                 (drop 1)
+                 (map-indexed #(/ %2 (inc (* 4 (inc %1)))))
+                 (filter #(< % 1/10))
+                 (first)
+                 (denominator))]
+    (/ (inc ltt) 2)))
