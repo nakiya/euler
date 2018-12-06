@@ -1151,10 +1151,7 @@
   (let [ltt (->> (diagonal-vals)
                  (take 15000)
                  (map #(count (filter prime? %)))
-                 (reduce (fn [coll el]
-                           (conj coll (+ (first coll) el)))
-                         '(0))
-                 (reverse)
+                 (reductions + 0)
                  (drop 1)
                  (map-indexed #(/ %2 (inc (* 4 (inc %1)))))
                  (filter #(< % 1/10))
