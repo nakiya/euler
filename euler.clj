@@ -1158,3 +1158,31 @@
                  (first)
                  (denominator))]
     (/ (inc ltt) 2)))
+
+; https://projecteuler.net/problem=59
+
+(def common-words #{"the" "of" "and" "to" "a" "in" "for" "is" "on" "that" "by" "this" "with" "i" "you" "it" "not" "or" "be" "are" "from" "at" "as" "your" "all" "have" "new" "more" "an" "was" "we" "will" "home" "can" "us" "about" "if" "page" "my" "has" "search" "free" "but" "our" "one" "other" "do" "no" "information" "time" "they" "site" "he" "up" "may" "what" "which" "their" "news" "out" "use" "any" "there" "see" "only" "so" "his" "when" "contact" "here" "business" "who" "web" "also" "now" "help" "get" "pm" "view" "online" "c" "e" "first" "am" "been" "would" "how" "were" "me" "s" "services" "some" "these" "click" "its" "like" "service" "x" "than" "find"})
+
+(defn problem-59 []
+  (let [lcr (range 97 123)
+        cipher (map #(Integer/parseInt (str/trim %))
+                    (str/split (slurp "p059_cipher.txt") #","))]
+    (->>
+     (for [i lcr
+           j lcr
+           k lcr]
+       (let [res (->> [i j k]
+                      (repeat)
+                      (flatten)
+                      (map bit-xor cipher)
+                      (map char)
+                      (apply str))
+             wc (->> (str/split res #"\s")
+                     (filter common-words)
+                     (count))]
+         (when (> wc 20)
+           res)))
+     (filter #(not= nil %))
+     (first)
+     (map int)
+     (reduce +))))
