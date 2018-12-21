@@ -10,9 +10,9 @@
 ; https://projecteuler.net/problem=2
 (defn fibonacci
   ([]
-   (fib 1 1))
+   (fibonacci 1 1))
   ([a b]
-   (lazy-seq (cons a (fib b (+ a b))))))
+   (lazy-seq (cons a (fibonacci b (+ a b))))))
 
 (defn problem-2 []
   (reduce + (filter #(even? %) (take-while #(< % 4000000) (fibonacci)))))
@@ -268,7 +268,7 @@
   (->> (for [i (range -1000 1001)
              j (range -1000 1001)]
          (->> (quadratic-vals i j)
-              (take-while memo-prime?)
+              (take-while prime?)
               (count)
               (conj [[i j]])))
        (sort-by second >)
@@ -495,7 +495,7 @@
         sub-l (map #(subs s %) (range length))
         sub-r (map #(subs s 0 %) (range 1 length))
         all (map #(Integer. %) (concat sub-l sub-r))]
-    (every? memo-prime? all)))
+    (every? prime? all)))
 
 (defn problem-37 []
   (->> (range)
@@ -601,7 +601,7 @@
        (map #(map (fn [i] (char (+ 48 i))) %))
        (map #(apply str %))
        (map #(Integer. %))
-       (filter memo-prime?)
+       (filter prime?)
        (apply max)))
 
 ; https://projecteuler.net/problem=42
@@ -712,8 +712,8 @@
 ; ;; Taken from https://stackoverflow.com/a/7625207/466694
 (defn gen-primes "Generates an infinite, lazy sequence of prime numbers"
   []
-  (letfn [(reinsert (fn [table x prime]
-                      (update-in table [(+ prime x)] conj prime)))
+  (letfn [(reinsert [table x prime]
+                      (update-in table [(+ prime x)] conj prime))
           (primes-step [table d]
                        (if-let [factors (get table d)]
                          (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
@@ -729,9 +729,9 @@
 
 (defn problem-46 []
   (->> (iterate (partial + 2) 3)
-       (remove memo-prime?)
+       (remove prime?)
        (map #(vector % (double-squares-less-than-minus %)))
-       (filter #(not-any? memo-prime? (second %)))
+       (filter #(not-any? prime? (second %)))
        (take 1)
        (ffirst)))
 
@@ -745,7 +745,7 @@
 ;; Copied from https://gist.github.com/unclebob/632303 and modified
 (defn factors-starting-at [num div]
   (cond
-    (> div (Math/sqrt num)) (if (= n 1) [] [n])
+    (> div (Math/sqrt num)) (if (= num 1) [] [num])
     (divides? num div) (cons div (factors-starting-at div (/ num div)))
     :else (recur (inc div) num)))
 
@@ -872,7 +872,7 @@
 
 ; https://projecteuler.net/problem=52
 
-(defn problem-52
+(defn problem-52 []
   (->> (range)
      (drop 1)
      (map #(map * [1 2 3 4 5 6] (repeat %)))
