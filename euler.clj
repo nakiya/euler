@@ -1221,3 +1221,68 @@
          (filter are-concat-primes-5?)
          (first)
          (reduce +))))
+
+; https://projecteuler.net/problem=61
+(defn- gen-polygonal-numbers
+  ([n polygon-fn]
+   (lazy-seq (cons (polygon-fn n)
+                   (gen-polygonal-numbers (inc n) polygon-fn))))
+  ([polygon-fn]
+   (gen-polygonal-numbers 1 polygon-fn)))
+
+(def triangle-numbers
+  (gen-polygonal-numbers (fn [n] (/ (* n (inc n)) 2))))
+
+(def square-numbers
+  (gen-polygonal-numbers (fn [n] (* n n))))
+
+(def pentagonal-numbers
+  (gen-polygonal-numbers (fn [n] (/ (* n (dec (* 3 n))) 2))))
+
+(def hexagonal-numbers
+  (gen-polygonal-numbers (fn [n] (* n (dec (* 2 n))))))
+
+(def heptagonal-numbers
+  (gen-polygonal-numbers (fn [n] (/ (* n (- (* 5 n) 3)) 2))))
+
+(def octagonal-numbers
+  (gen-polygonal-numbers (fn [n] (* n (- (* 3 n) 2)))))
+
+(defn- get-4-digit-polygonal-numbers [series]
+  (->> series
+       (drop-while #(< % 1000))
+       (take-while #(< % 10000))))
+
+(defn- shares-last-and-first-two-digits? [a b]
+  (let [sa (str a)
+        sb (str b)]
+    (= (subs sa 2) (subs sb 0 2))))
+
+; (shares-first-and-last-two-digits? 1235 3456)
+
+(defn- get-chain [possible-nums last-num current-chain]
+  (if (or (= (count current-chain) 6)
+          (= (count possible-nums) 0))
+    current-chain
+    (let [chainable-nums (filter #(or (not last-num) (shares-last-and-first-two-digits? last-num %))
+                                 (disj possible-nums last-num))]
+      (for [i chainable-nums]
+        (get-chain (cs/difference possible-nums (set [last-num i])) i (conj current-chain i))))))
+
+(let [polys
+      (->> [triangle-numbers square-numbers pentagonal-numbers hexagonal-numbers heptagonal-numbers octagonal-numbers]
+           (map get-4-digit-polygonal-numbers)
+           (map #(set %)))
+      all-polys
+      (->> polys
+           (apply concat)
+           (set))
+      comb1 (combo/combinations all-polys 2)
+      comb2 (map reverse comb1)
+      combs (concat comb1 comb2)
+      fc1 (filter #(apply shares-last-and-first-two-digits? %) combs)
+      fc2 (filter #(apply shares-last-and-first-two-digits? %) combs)
+      cn (cs/intersection (set (map first fc1)) (set (map first fc2)))
+      chains (filter vector? (tree-seq (complement vector?) seq (get-chain cn nil [])))
+      circular-chains (filter #(shares-last-and-first-two-digits? (last %) (first %)) chains)]
+  circular-chains)
