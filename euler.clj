@@ -1297,3 +1297,14 @@
     (reduce + (ffirst res))))
 
 ; https://projecteuler.net/problem=62
+
+(defn problem-62 []
+  (->> (range 10000)
+       (map #(* % % %))
+       (map #(hash-map (sort (get-digits %)) [%]))
+       (apply merge-with into)
+       (vals)
+       (filter #(= 5 (count %)))
+       (map first)
+       (sort)
+       (first)))
