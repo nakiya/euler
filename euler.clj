@@ -1186,3 +1186,38 @@
      (first)
      (map int)
      (reduce +))))
+
+; https://projecteuler.net/problem=60
+
+; https://stackoverflow.com/a/4140746/466694
+(defn- concat-numbers [a b]
+  "b should be greater than zero"
+  (+ (int (* a (Math/pow 10 (Math/floor (inc (Math/log10 b))))))
+     b))
+
+(def are-c-primes?
+  (memoize (fn [a b]
+             (if (>= a b)
+               (and (prime? (concat-numbers a b))
+                    (prime? (concat-numbers b a)))
+               (are-c-primes? b a)))))
+
+(defn- are-concat-primes-5? [[a b c d e]]
+  (every? #(apply are-c-primes? %) [[a b] [a c] [a d] [b c] [b d] [c d] [a e] [b e] [c e] [d e]]))
+
+(defn- are-concat-primes-4? [[a b c d]]
+  (every? #(apply are-c-primes? %) [[a b] [a c] [a d] [b c] [b d] [c d]]))
+
+;; Takes a long time to come up with the solution. But it does.
+(defn problem-60 []
+  (let [ps (take-while #(< % 10000) (gen-primes))
+        p2s (->> (combo/combinations ps 2)
+                 (filter #(apply are-c-primes? %)))
+        p4s (->> (for [i p2s j p2s]
+                   (concat i j))
+                 (filter are-concat-primes-4?))]
+    (->> (for [i ps j p4s]
+           (conj j i))
+         (filter are-concat-primes-5?)
+         (first)
+         (reduce +))))
