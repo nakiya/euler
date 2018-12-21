@@ -1269,20 +1269,31 @@
       (for [i chainable-nums]
         (get-chain (cs/difference possible-nums (set [last-num i])) i (conj current-chain i))))))
 
-(let [polys
-      (->> [triangle-numbers square-numbers pentagonal-numbers hexagonal-numbers heptagonal-numbers octagonal-numbers]
-           (map get-4-digit-polygonal-numbers)
-           (map #(set %)))
-      all-polys
-      (->> polys
-           (apply concat)
-           (set))
-      comb1 (combo/combinations all-polys 2)
-      comb2 (map reverse comb1)
-      combs (concat comb1 comb2)
-      fc1 (filter #(apply shares-last-and-first-two-digits? %) combs)
-      fc2 (filter #(apply shares-last-and-first-two-digits? %) combs)
-      cn (cs/intersection (set (map first fc1)) (set (map first fc2)))
-      chains (filter vector? (tree-seq (complement vector?) seq (get-chain cn nil [])))
-      circular-chains (filter #(shares-last-and-first-two-digits? (last %) (first %)) chains)]
-  circular-chains)
+(defn problem-61 []
+  (let [polys
+        (->> [triangle-numbers square-numbers pentagonal-numbers hexagonal-numbers heptagonal-numbers octagonal-numbers]
+             (map get-4-digit-polygonal-numbers)
+             (map #(set %)))
+        all-polys
+        (->> polys
+             (apply concat)
+             (set))
+        comb1 (combo/combinations all-polys 2)
+        comb2 (map reverse comb1)
+        combs (concat comb1 comb2)
+        fc1 (filter #(apply shares-last-and-first-two-digits? %) combs)
+        fc2 (filter #(apply shares-last-and-first-two-digits? %) combs)
+        cn (cs/intersection (set (map first fc1)) (set (map first fc2)))
+        chains (filter vector? (tree-seq (complement vector?) seq (get-chain cn nil [])))
+        circular-chains (filter #(shares-last-and-first-two-digits? (last %) (first %)) chains)
+        p6s (permutations (range 6))
+        apply-permutation (fn [chain permutation] (every? some? (map #((nth polys %1) %2) permutation chain)))
+        res (map (fn [permutation]
+                   (filter (fn [chain]
+                             (apply-permutation chain permutation))
+                           circular-chains))
+                 p6s)
+        res (filter (complement empty?) res)]
+    (reduce + (ffirst res))))
+
+; https://projecteuler.net/problem=62
