@@ -1308,3 +1308,13 @@
        (map first)
        (sort)
        (first)))
+
+; https://projecteuler.net/problem=63
+
+(defn problem-63 []
+  (->> (range 1 10)
+       (map (fn [b] (map (fn [e] [e (.length (str (expt (biginteger b) e)))]) (drop 1 (range)))))
+       (map (fn [l] (take-while #(= (first %) (second %)) l)))
+       (map (fn [l] (map first l)))
+       (flatten)
+       (count)))
