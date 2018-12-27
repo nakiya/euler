@@ -1394,3 +1394,20 @@
        (map #(concat [%] (solve-pells-equation %)))
        (sort #(> (second %1) (second %2)))
        (ffirst)))
+
+; https://projecteuler.net/problem=67
+
+; A node can be reached via maximum of two paths from previous level.
+; Create max totals for each row. This can be used in turn to calculate next row
+(defn- solve-triangle-max [previous-row current-row]
+  )
+
+(let [els (->> (str/split (slurp "p067_triangle.txt") #"\s")
+               (map #(Integer/parseInt %))
+               (apply vector))
+      triangle (map #(subvec els (first %) (second %))
+                    (first (reduce (fn [[coll last] i]
+                                     [(conj coll [last (+ last i)]) (+ last i)])
+                                   [[] 0]
+                                   (range 1 101))))]
+  (solve-triangle-max triangle (sorted-map (ffirst triangle) [[0 0]])))
