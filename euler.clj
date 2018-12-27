@@ -1318,3 +1318,56 @@
        (map (fn [l] (map first l)))
        (flatten)
        (count)))
+
+; https://projecteuler.net/problem=64
+
+(defn- next-continued-fraction [[a n x y]]
+  (let [sq (int (Math/sqrt n))
+        x2 (quot (- n (* y y)) x)
+        tu (mod (+ y sq) x2)
+        y2 (- sq tu)
+        a2 (quot (+ y sq) x2)]
+    [a2 n x2 y2]))
+
+(defn- continued-fractions [n]
+  (iterate next-continued-fraction [0 n 1 (int (Math/sqrt n))]))
+
+(defn- first-duplicates 
+  ([[x & rest_xs] index index_map]
+   (let [found_index (index_map x)]
+     (if (nil? found_index)
+       (first-duplicates rest_xs (inc index) (assoc index_map x index))
+       [found_index index])))
+  ([xs]
+   (first-duplicates xs 0 {})))
+
+(defn- find-period-of-continued-fraction [n]
+  (let [cfs (continued-fractions n)]
+    (apply - (reverse (first-duplicates (continued-fractions n))))))
+
+(defn- is-perfect-square? [n]
+  (let [sq (int (Math/sqrt n))]
+    (= n (* sq sq))))
+
+(defn problem-64 []
+  (->> (range 2 10001)
+       (filter (complement is-perfect-square?))
+       (map find-period-of-continued-fraction)
+       (filter odd?)
+       (count)))
+
+; https://projecteuler.net/problem=65
+
+(defn- continued-fraction-term [cf]
+  (->> (reverse cf)
+       (reduce (fn [prev-sum t] (+ t (/ 1 prev-sum))))))
+
+(defn- e-fractions []
+  (concat [2]
+          (flatten (iterate (fn [[x y z]] [x (+ y 2) z]) [1 2 1]))))
+
+(defn problem-65 []
+  (->> (take 100 (e-fractions))
+       (continued-fraction-term)
+       (numerator)
+       (sum-digits)))
