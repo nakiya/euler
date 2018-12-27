@@ -1371,3 +1371,26 @@
        (continued-fraction-term)
        (numerator)
        (sum-digits)))
+
+; https://projecteuler.net/problem=66
+; http://mathworld.wolfram.com/PellEquation.html
+(defn- continued-fractions-simplified [n]
+  (let [cfs (continued-fractions n)]
+    (concat [(last (first cfs))]
+          (map first (drop 1 cfs)))))
+
+(defn solve-pells-equation [D]
+  (let [cfs (continued-fractions-simplified D)
+        r (find-period-of-continued-fraction D)
+        num-terms (if (odd? r) (* 2 r) r)
+        last-term (continued-fraction-term (take num-terms cfs))]
+    (if (ratio? last-term)
+      [(numerator last-term) (denominator last-term)]
+      [last-term 1])))
+
+(defn problem-66 []
+  (->> (range 1001)
+       (filter (complement is-perfect-square?))
+       (map #(concat [%] (solve-pells-equation %)))
+       (sort #(> (second %1) (second %2)))
+       (ffirst)))
