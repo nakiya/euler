@@ -7,3 +7,5 @@ Clojure lends itself to this sort of problems and it's a joy to see the transfor
 1. How to create pipelines which work on data. Or Conveyor belts.
 2. How powerful `map`, `filter`, `reduce` functions are.
 3. Playing with data and seeing the results make the problem-solving exercise faster and more fun. The REPL and an integrated editor are amazing here.
+
+![](https://projecteuler.net/profile/dumrat.png)
