@@ -1399,8 +1399,12 @@
 
 ; A node can be reached via maximum of two paths from previous level.
 ; Create max totals for each row. This can be used in turn to calculate next row
-(defn- solve-triangle-max [previous-row current-row]
-  )
+(defn- solve-t)riangle-max [previous-row current-row]
+  (->> (range (count current-row))
+       (map (fn [i] (cond (= i 0) (nth previous-row 0) 
+                          (= i (count previous-row)) (nth previous-row (dec i))
+                          :else (max (nth previous-row (dec i)) (nth previous-row i)))))
+       (map + current-row)))
 
 (let [els (->> (str/split (slurp "p067_triangle.txt") #"\s")
                (map #(Integer/parseInt %))
@@ -1410,4 +1414,4 @@
                                      [(conj coll [last (+ last i)]) (+ last i)])
                                    [[] 0]
                                    (range 1 101))))]
-  (solve-triangle-max triangle (sorted-map (ffirst triangle) [[0 0]])))
+  (first (sort > (reduce solve-triangle-max triangle)))
