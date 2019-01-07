@@ -1332,7 +1332,7 @@
 (defn- continued-fractions [n]
   (iterate next-continued-fraction [0 n 1 (int (Math/sqrt n))]))
 
-(defn- first-duplicates 
+(defn- first-duplicates
   ([[x & rest_xs] index index_map]
    (let [found_index (index_map x)]
      (if (nil? found_index)
@@ -1399,19 +1399,35 @@
 
 ; A node can be reached via maximum of two paths from previous level.
 ; Create max totals for each row. This can be used in turn to calculate next row
-(defn- solve-t)riangle-max [previous-row current-row]
+(defn- solve-triangle-max [previous-row current-row]
   (->> (range (count current-row))
        (map (fn [i] (cond (= i 0) (nth previous-row 0) 
                           (= i (count previous-row)) (nth previous-row (dec i))
                           :else (max (nth previous-row (dec i)) (nth previous-row i)))))
        (map + current-row)))
 
-(let [els (->> (str/split (slurp "p067_triangle.txt") #"\s")
-               (map #(Integer/parseInt %))
-               (apply vector))
-      triangle (map #(subvec els (first %) (second %))
-                    (first (reduce (fn [[coll last] i]
-                                     [(conj coll [last (+ last i)]) (+ last i)])
-                                   [[] 0]
-                                   (range 1 101))))]
-  (first (sort > (reduce solve-triangle-max triangle)))
+(defn problem-67 []
+  (let [els (->> (str/split (slurp "p067_triangle.txt") #"\s")
+                 (map #(Integer/parseInt %))
+                 (apply vector))
+        triangle (map #(subvec els (first %) (second %))
+                      (first (reduce (fn [[coll last] i]
+                                       [(conj coll [last (+ last i)]) (+ last i)])
+                                     [[] 0]
+                                     (range 1 101))))]
+    (first (sort > (reduce solve-triangle-max triangle)))))
+
+
+; https://projecteuler.net/problem=67
+
+(defn problem-68 []
+  (->> (combo/permutations (range 1 11))
+       (filter (fn [[a b c d e f g h i j]] (and (= (+ a b c) (+ d c e) (+ f e g) (+ h g i) (+ j i b))
+                                                (< a d) (< a f) (< a h) (< a j))))
+       (map (fn [[a b c d e f g h i j]] (->> [a b c d c e f e g h g i j i b]
+                                             (map str)
+                                             (apply str))))
+       (filter #(= (.length %) 16))
+       (map biginteger)
+       (sort >)
+       (first)))
