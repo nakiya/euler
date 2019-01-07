@@ -1,5 +1,7 @@
 # euler
-Some Project Euler problems solved in Clojure. Continuous from problem 23 onwards. Currently at 63.
+Some Project Euler problems solved in Clojure. Continuous from problem 23 onwards. Currently at 69.
+
+(Everything in a single file because sometimes I used a windows machine where lein couldn't download dependencies and where I didn't have a proper IDE)
 
 Clojure lends itself to this sort of problems and it's a joy to see the transformation of the problem data into the solution. Thread-last macro ftw!
 
