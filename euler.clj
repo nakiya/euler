@@ -28,6 +28,18 @@
                                :else (recur n (inc div) factors))))]
     (last (get-factors num 2 []))))
 
+;; https://projecteuler.net/problem=4
+(defn- is-palindrome? [num]
+  (let [snum (str num)]
+    (= snum (str/reverse snum))))
+
+(defn problem-4 []
+  (->> (combo/combinations (range 100 1000) 2)
+       (map #(apply * %))
+       (filter is-palindrome?)
+       (sort >)
+       (first)))
+
 ; https://projecteuler.net/problem=16
 
 (defn sum-digits [num]
