@@ -1435,7 +1435,8 @@
 ; https://projecteuler.net/problem=69
 ; Totient value calculated (See totient-vals) using formula here: https://en.wikipedia.org/wiki/Euler%27s_totient_function#Euler's_product_formula
 
-(defn- get-totient-vals [max]
+
+(defn- get-factors-map [max]
   (let [dict (apply hash-map (interleave (range 2 max) (take (- max 2) (repeat []))))
         primes (take-while #(< % max) (gen-primes))
         factors-map (reduce (fn [d i]
@@ -1444,8 +1445,12 @@
                                       d
                                       (range i max i)))
                             dict
-                            primes)
-        totient-vals (into {} (for [[k v] factors-map] 
+                            primes)]
+    factors-map))
+
+(defn- get-totient-vals [max]
+  (let [factors-map (get-factors-map max)
+        totient-vals (into {} (for [[k v] factors-map]
                                 [k (reduce (fn [p i] (* p (- 1 (/ 1 i)))) 
                                            k v)]))]
     totient-vals))
@@ -1465,3 +1470,24 @@
         phi-vals (map (fn [[k v]] [(/ k v) k]) permutations)
         sorted-phis (sort-by first < phi-vals)]
     (second (first sorted-phis))))
+
+; https://projecteuler.net/problem=70
+;; https://en.wikipedia.org/wiki/Farey_sequence#Farey_neighbours
+;; See mediant :
+;; If a/b and c/d are two adjacent terms in a Farey seq F(n), the next num between them is (a+c)/(b+d) first in F(b+d)
+
+(defn- next-mediant [[a b c d]]
+  [(+ a c) (+ b d) c d])
+
+(defn problem-71 []
+  (->> (iterate next-mediant [2 5 3 7])
+       (take-while (fn [[_ b _ _]] (< b 1000000)))
+       (last)
+       (first)))
+
+;; https://projecteuler.net/problem=72
+;; 21 is sum of totients (> 1 & <= 8)
+(defn- problem-72 []
+  (->> (get-totient-vals 1000001)
+       (map second)
+       (reduce +)))
