@@ -92,6 +92,12 @@
              (rest))]
     (* a b (- 1000 a b))))
 
+;; https://projecteuler.net/problem=10
+(defn problem-10 []
+  (->> (gen-primes)
+       (take-while #(< % 2000000))
+       (reduce +)))
+
 ;; https://projecteuler.net/problem=16
 
 (defn sum-digits [num]
