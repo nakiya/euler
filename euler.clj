@@ -19,23 +19,9 @@
 
 ;; https://projecteuler.net/problem=3
 
-; ;; Taken from https://stackoverflow.com/a/7625207/466694
-(defn gen-primes "Generates an infinite, lazy sequence of prime numbers"
-  []
-  (letfn [(reinsert [table x prime]
-            (update-in table [(+ prime x)] conj prime))
-          (primes-step [table d]
-            (if-let [factors (get table d)]
-              (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
-                     (inc d))
-              (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
-                                             (inc d))))))]
-    (primes-step {} 2)))
-
 (defn problem-3 []
   (let [num 600851475143
         sr (inc (int (Math/sqrt num)))
-        primes (apply hash-set (take-while #(< % sr) (gen-primes)))
         get-factors (fn ([n div factors]
                          (cond (<= n 1) factors
                                (= 0 (mod n div)) (recur (quot n div) div (conj factors div))
@@ -806,6 +792,19 @@
 
 (defn are-permutations-of-each-other? [num1 num2]
   (= (sort (get-digits num1)) (sort (get-digits num2))))
+
+;; Taken from https://stackoverflow.com/a/7625207/466694
+(defn gen-primes "Generates an infinite, lazy sequence of prime numbers"
+  []
+  (letfn [(reinsert [table x prime]
+            (update-in table [(+ prime x)] conj prime))
+          (primes-step [table d]
+            (if-let [factors (get table d)]
+              (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
+                     (inc d))
+              (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
+                                             (inc d))))))]
+    (primes-step {} 2)))
 
 (defn problem-49 []
   (let [four-digit-primes (->> (gen-primes)
