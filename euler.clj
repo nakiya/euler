@@ -1431,3 +1431,24 @@
        (map biginteger)
        (sort >)
        (first)))
+
+; https://projecteuler.net/problem=69
+; Totient value calculated (See totient-vals) using formula here: https://en.wikipedia.org/wiki/Euler%27s_totient_function#Euler's_product_formula
+
+(defn- problem-69 []
+  (let [max 1000001
+        dict (apply hash-map (interleave (range 2 max) (take (- max 2) (repeat []))))
+        primes (take-while #(< % max) (gen-primes))
+        factors-map (reduce (fn [d i]
+                              (reduce (fn [dd ii]
+                                        (update dd ii conj i))
+                                      d
+                                      (range i max i)))
+                            dict
+                            primes)
+        totient-vals (into {} (for [[k v] factors-map] 
+                                [k (reduce (fn [p i] (* p (- 1 (/ 1 i)))) 
+                                           k v)]))
+        phi-vals (into (sorted-map-by >) (for [[k v] totient-vals]
+                                           [(/ k v) k]))]
+    (second (first phi-vals))))
