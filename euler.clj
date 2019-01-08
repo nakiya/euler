@@ -17,6 +17,31 @@
 (defn problem-2 []
   (reduce + (filter #(even? %) (take-while #(< % 4000000) (fibonacci)))))
 
+;; https://projecteuler.net/problem=3
+
+; ;; Taken from https://stackoverflow.com/a/7625207/466694
+(defn gen-primes "Generates an infinite, lazy sequence of prime numbers"
+  []
+  (letfn [(reinsert [table x prime]
+            (update-in table [(+ prime x)] conj prime))
+          (primes-step [table d]
+            (if-let [factors (get table d)]
+              (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
+                     (inc d))
+              (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
+                                             (inc d))))))]
+    (primes-step {} 2)))
+
+(defn problem-3 []
+  (let [num 600851475143
+        sr (inc (int (Math/sqrt num)))
+        primes (apply hash-set (take-while #(< % sr) (gen-primes)))
+        get-factors (fn ([n div factors]
+                         (cond (<= n 1) factors
+                               (= 0 (mod n div)) (recur (quot n div) div (conj factors div))
+                               :else (recur n (inc div) factors))))]
+    (last (get-factors num 2 []))))
+
 ; https://projecteuler.net/problem=16
 
 (defn sum-digits [num]
@@ -708,19 +733,6 @@
      2)))
 
 ; https://projecteuler.net/problem=46
-
-; ;; Taken from https://stackoverflow.com/a/7625207/466694
-(defn gen-primes "Generates an infinite, lazy sequence of prime numbers"
-  []
-  (letfn [(reinsert [table x prime]
-                      (update-in table [(+ prime x)] conj prime))
-          (primes-step [table d]
-                       (if-let [factors (get table d)]
-                         (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
-                                (inc d))
-                         (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
-                                                        (inc d))))))]
-    (primes-step {} 2)))
 
 (defn double-squares-less-than-minus [num]
   (->> (range 1 (inc (int (Math/sqrt num))))
