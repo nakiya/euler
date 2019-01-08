@@ -40,6 +40,11 @@
        (sort >)
        (first)))
 
+;; https://projecteuler.net/problem=5
+
+(defn problem-5 []
+  (* 16 9 5 7 11 13 17 19))
+
 ; https://projecteuler.net/problem=16
 
 (defn sum-digits [num]
