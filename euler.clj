@@ -58,8 +58,20 @@
           (map square)
           (reduce +))))
 
+;; Taken from https://stackoverflow.com/a/7625207/466694
+(defn gen-primes "Generates an infinite, lazy sequence of prime numbers"
+  []
+  (letfn [(reinsert [table x prime]
+            (update-in table [(+ prime x)] conj prime))
+          (primes-step [table d]
+            (if-let [factors (get table d)]
+              (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
+                     (inc d))
+              (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
+                                             (inc d))))))]
+    (primes-step {} 2)))
+
 ;; https://projecteuler.net/problem=7
-;; Cheating. See gen-primes someway down below.
 (defn- problem-7 []
   (->> (gen-primes)
        (drop 10000)
@@ -151,6 +163,25 @@
      (map (partial prod-fn data))
      (sort >)
      (first))))
+
+;; https://projecteuler.net/problem=12
+(defn gen-triangle-numbers
+  ([n]
+   (lazy-seq (cons (/ (* n (inc n)) 2)
+                   (gen-triangle-numbers (inc n)))))
+  ([]
+   (gen-triangle-numbers 1)))
+
+(defn- problem-12 []
+  (->> (gen-triangle-numbers)
+       (map (fn [tn] [(filter #(zero? (mod tn %))
+                              (range 1 (Math/sqrt tn))) tn]))
+       (map #(vector (count (first %)) (second %)))
+       (map #(vector (* 2 (first %)) (second %)))
+       (filter #(> (first %) 500))
+       (first)
+       (second)))
+
 
 ;; https://projecteuler.net/problem=16
 
@@ -729,14 +760,6 @@
        (apply max)))
 
 ; https://projecteuler.net/problem=42
-
-(defn gen-triangle-numbers 
-  ([n]
-   (lazy-seq (cons (/ (* n (inc n)) 2)
-                   (gen-triangle-numbers (inc n)))))
-  ([]
-   (gen-triangle-numbers 1)))
-
 (defn word-value [word]
   (->> word
        (map #(- (int %) 64))
@@ -905,19 +928,6 @@
 
 (defn are-permutations-of-each-other? [num1 num2]
   (= (sort (get-digits num1)) (sort (get-digits num2))))
-
-;; Taken from https://stackoverflow.com/a/7625207/466694
-(defn gen-primes "Generates an infinite, lazy sequence of prime numbers"
-  []
-  (letfn [(reinsert [table x prime]
-            (update-in table [(+ prime x)] conj prime))
-          (primes-step [table d]
-            (if-let [factors (get table d)]
-              (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
-                     (inc d))
-              (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
-                                             (inc d))))))]
-    (primes-step {} 2)))
 
 (defn problem-49 []
   (let [four-digit-primes (->> (gen-primes)
