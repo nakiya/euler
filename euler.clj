@@ -10,7 +10,7 @@
 ; https://projecteuler.net/problem=2
 (defn fibonacci
   ([]
-   (fibonacci 1 1))
+   (fibonacci 1N 1N))
   ([a b]
    (lazy-seq (cons a (fibonacci b (+ a b))))))
 
@@ -392,6 +392,20 @@
 
 (defn problem-24 []
   (apply str (nth (permutations "0123456789") 999999)))
+
+; https://projecteuler.net/problem=25
+(def fib 
+      (memoize
+       (fn [i]
+         (cond (< i 3) 1N
+               :else (+ (fib (dec i)) (fib (- i 2)))))))
+
+(defn problem-25 []
+  (->> (range)
+       (map #(vector (str (fib %)) %))
+       (filter #(>= (.length (first %)) 1000))
+       (first)
+       (second)))
 
 ; https://projecteuler.net/problem=26
 
