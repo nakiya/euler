@@ -152,6 +152,30 @@
      (sort >)
      (first))))
 
+;; https://projecteuler.net/problem=14
+(defn problem-14 []
+  (let [collatz-fn
+        (memoize
+         (fn [n]
+           (cond (= 1 n) 1
+                 (even? n) (inc (collatz-fn (/ n 2)))
+                 :else (inc (collatz-fn (inc (* 3 n)))))))])
+  (->> (range 1 1000001)
+       (map #(vector % (collatz-fn %)))
+       (sort-by second >)
+       (ffirst)))
+
+;; https://projecteuler.net/problem=15
+(defn problem-15 []
+  (let
+   [routes
+    (memoize
+     (fn [rows cols]
+       (cond (zero? rows) 1
+             (zero? cols) 1
+             :else (+ (routes (dec rows) cols) (routes rows (dec cols))))))]
+    (routes 20 20)))
+
 ;; https://projecteuler.net/problem=16
 
 (defn sum-digits [num]
@@ -327,9 +351,9 @@
         abundants))
 
 (defn problem-23 []
- (->> (range 28124)
-      (remove is-sum-of-two-abundants?)
-      (apply +)))
+  (->> (range 28124)
+       (remove is-sum-of-two-abundants?)
+       (apply +)))
 
 ; https://projecteuler.net/problem=24
 
@@ -586,7 +610,7 @@
 
 (defn is-palindrome-number? [num]
   (let [num-str (str num)]
-       (is-palindrome? num-str (.length num-str))))
+    (is-palindrome? num-str (.length num-str))))
 
 (defn problem-36 []
   (->> (range 1 1000000)
@@ -703,18 +727,18 @@
 ;; Base is 10 ftm
 (defn get-digits [num]
   (->> [num []]
-     (iterate (fn [[num digits]]
-                (when (> num 0)
-                  [(quot num 10) (conj digits (rem num 10))])))
-     (take-while some?)
-     (last)
-     (second)))
+       (iterate (fn [[num digits]]
+                  (when (> num 0)
+                    [(quot num 10) (conj digits (rem num 10))])))
+       (take-while some?)
+       (last)
+       (second)))
 
 (defn is-pandigital? [num num-digits]
   (let [digits (get-digits num)]
-       (and (not-any? #(> % num-digits) digits)
-            (= num-digits (count digits))
-            (apply distinct? digits))))
+    (and (not-any? #(> % num-digits) digits)
+         (= num-digits (count digits))
+         (apply distinct? digits))))
 
 ;; There's no need to use is-pandigital if we generate pan-digital permuatations in the first place.
 (defn problem-41 []
@@ -730,7 +754,7 @@
 
 ; https://projecteuler.net/problem=42
 
-(defn gen-triangle-numbers 
+(defn gen-triangle-numbers
   ([n]
    (lazy-seq (cons (/ (* n (inc n)) 2)
                    (gen-triangle-numbers (inc n)))))
@@ -783,7 +807,7 @@
 ;; https://projecteuler.net/problem=44
 
 (defn gen-pentagonal-numbers
-  ([n ]
+  ([n]
    (lazy-seq (cons (/ (* n (- (* 3 n) 1)) 2)
                    (gen-pentagonal-numbers (inc n)))))
   ([]
@@ -912,11 +936,11 @@
   (letfn [(reinsert [table x prime]
             (update-in table [(+ prime x)] conj prime))
           (primes-step [table d]
-            (if-let [factors (get table d)]
-              (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
-                     (inc d))
-              (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
-                                             (inc d))))))]
+                       (if-let [factors (get table d)]
+                         (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
+                                (inc d))
+                         (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
+                                                        (inc d))))))]
     (primes-step {} 2)))
 
 (defn problem-49 []
@@ -931,7 +955,7 @@
          (filter #(apply are-permutations-of-each-other? %))
          (filter (fn [[n1 n2]]
                    (let [mx (max n1 n2)
-                         mn (min n1 n2) 
+                         mn (min n1 n2)
                          diff (- mx mn)
                          next (+ mx diff)]
                      (and (< next 10000)
@@ -976,8 +1000,8 @@
         (for [digit ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"]]
           (when (str/includes? str-num digit)
             [(for [replacement ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9"]]
-              (Integer. (str/replace str-num digit replacement))) num]))]
-       (filter some? res)))
+               (Integer. (str/replace str-num digit replacement))) num]))]
+    (filter some? res)))
 
 (defn problem-51 []
   (let [primes (->> (gen-primes)
@@ -998,10 +1022,10 @@
 
 (defn problem-52 []
   (->> (range)
-     (drop 1)
-     (map #(map * [1 2 3 4 5 6] (repeat %)))
-     (filter (fn [list] (apply = (map #(sort (get-digits %)) list))))
-     (ffirst)))
+       (drop 1)
+       (map #(map * [1 2 3 4 5 6] (repeat %)))
+       (filter (fn [list] (apply = (map #(sort (get-digits %)) list))))
+       (ffirst)))
 
 ; https://projecteuler.net/problem=53
 
@@ -1016,7 +1040,7 @@
        (map #(apply n-C-r %))
        (filter #(< 1000000 %))
        (count)))
-    
+
 ; https://projecteuler.net/problem=54
 
 ;; Typical hand
@@ -1050,10 +1074,10 @@
   (apply = (map second cards)))
 
 (defn royal-flush? [hand]
-       (and (same-suit? hand)
-            (= (ffirst hand) 10)
-            (consecutive? (map first hand))
-            (sort card-order-greater hand)))
+  (and (same-suit? hand)
+       (= (ffirst hand) 10)
+       (consecutive? (map first hand))
+       (sort card-order-greater hand)))
 
 ; (royal-flush? [[10 :H] [11 :H] [12 :H] [13 :H] [14 :H]])
 ; (royal-flush? [[9 :H] [10 :H] [11 :H] [12 :H] [13 :H]])
@@ -1077,8 +1101,8 @@
   (let [foak (->> (combo/combinations hand 4)
                   (filter are-all-equal-nums?)
                   (first))]
-       (when foak
-             (add-other-cards hand foak))))
+    (when foak
+      (add-other-cards hand foak))))
 
 ; (four-of-a-kind? [[10 :H] [11 :H] [12 :H] [13 :H] [14 :H]])
 ; (four-of-a-kind? [[12 :H] [10 :H] [10 :S] [10 :D] [10 :C]])
@@ -1093,8 +1117,8 @@
   (let [fh (->> (split-to-two-and-three hand)
                 (filter #(every? are-all-equal-nums? %))
                 (first))]
-       (when fh
-             (apply concat (reverse fh)))))
+    (when fh
+      (apply concat (reverse fh)))))
 
 ; (full-house? [[12 :H] [12 :S] [10 :S] [10 :D] [10 :C]])
 ; (full-house? [[12 :H] [12 :S] [9 :S] [10 :D] [10 :C]])
@@ -1120,8 +1144,8 @@
                   (map second)
                   (filter are-all-equal-nums?)
                   (first))]
-       (when toak
-             (add-other-cards hand toak))))
+    (when toak
+      (add-other-cards hand toak))))
 
 ; (three-of-a-kind? [[10 :H] [10 :S] [12 :D] [10 :C] [14 :H]])
 ; (three-of-a-kind? [[10 :H] [10 :S] [12 :H] [13 :H] [14 :H]])
@@ -1136,11 +1160,11 @@
         tp (when splits
              (vector (first splits)
                      (first (filter are-all-equal-nums? (combo/combinations (second splits) 2)))))]
-       (when tp
-         (->> tp
-              (apply concat)
-              (sort card-order-greater)
-              (add-other-cards hand)))))
+    (when tp
+      (->> tp
+           (apply concat)
+           (sort card-order-greater)
+           (add-other-cards hand)))))
 
 ; (two-pairs? [[10 :H] [10 :S] [12 :D] [9 :C] [14 :H]])
 ; (two-pairs? [[10 :H] [10 :S] [12 :H] [14 :H] [14 :C]])
@@ -1149,8 +1173,8 @@
   (let [op (->> (combo/combinations hand 2)
                 (filter are-all-equal-nums?)
                 (first))]
-       (when op
-             (add-other-cards hand op))))
+    (when op
+      (add-other-cards hand op))))
 
 ; (one-pair? [[10 :H] [10 :S] [12 :D] [9 :C] [14 :H]])
 ; (one-pair? [[10 :H] [11 :S] [12 :H] [4 :H] [14 :C]])
@@ -1255,7 +1279,7 @@
 ; https://projecteuler.net/problem=57
 
 (def sqrt-denom
-  (memoize 
+  (memoize
    (fn [iterations]
      (/ 1 (if (= iterations 0)
             2
@@ -1501,7 +1525,7 @@
 (defn- continued-fractions-simplified [n]
   (let [cfs (continued-fractions n)]
     (concat [(last (first cfs))]
-          (map first (drop 1 cfs)))))
+            (map first (drop 1 cfs)))))
 
 (defn solve-pells-equation [D]
   (let [cfs (continued-fractions-simplified D)
@@ -1525,7 +1549,7 @@
 ; Create max totals for each row. This can be used in turn to calculate next row
 (defn- solve-triangle-max [previous-row current-row]
   (->> (range (count current-row))
-       (map (fn [i] (cond (= i 0) (nth previous-row 0) 
+       (map (fn [i] (cond (= i 0) (nth previous-row 0)
                           (= i (count previous-row)) (nth previous-row (dec i))
                           :else (max (nth previous-row (dec i)) (nth previous-row i)))))
        (map + current-row)))
@@ -1575,7 +1599,7 @@
 (defn- get-totient-vals [max]
   (let [factors-map (get-factors-map max)
         totient-vals (into {} (for [[k v] factors-map]
-                                [k (reduce (fn [p i] (* p (- 1 (/ 1 i)))) 
+                                [k (reduce (fn [p i] (* p (- 1 (/ 1 i))))
                                            k v)]))]
     totient-vals))
 
