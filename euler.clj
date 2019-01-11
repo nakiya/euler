@@ -1678,3 +1678,20 @@
   (->> (get-totient-vals 1000001)
        (map second)
        (reduce +)))
+
+;; https://projecteuler.net/problem=73
+;; See https://en.wikipedia.org/wiki/Farey_sequence#Next_term
+(defn- farey-fn [n lower-limit upper-limit]
+  (loop [a 0 b 1 c 1 d n coll []]
+    (if (> c n)
+      coll
+      (let [k (int (/ (+ n b) d))]
+        (recur c d (- (* k c) a) (- (* k d) b) 
+               (let [r (/ a b)]
+                 (if (and (> r lower-limit) (< r upper-limit))
+                   (conj coll (/ a b))
+                   coll)))))))
+
+(defn problem-73 []
+  (count (farey-fn 12000 1/3 1/2)))
+
