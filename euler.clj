@@ -293,12 +293,29 @@
    (take 10)
    (apply str)))
 
+;; https://projecteuler.net/problem=14
+
+;; n → n/2 (n is even)
+;; n → 3n + 1 (n is odd)
+(def collatz-seq
+  (memoize
+   (fn [n count]
+     (cond
+       (= n 1) count
+       (even? n) (collatz-seq (/ n 2) (inc count))
+       :else (collatz-seq (inc (* 3 n)) (inc count))))))
+
+(->> (range 1 1000001)
+     (map #(vector (collatz-seq % 1) %))
+     (sort-by first >)
+     (first))
+
 ;; https://projecteuler.net/problem=16
 
 (defn sum-digits [num]
   (let [str-num (str num)
         digits (map #(- (int %) 48) str-num)]
-    (reduce + digits))))
+    (reduce + digits)))
 
 (defn problem-16 []
   (sum-digits (.toBigInteger (BigDecimal. (Math/pow 2 1000)))))
