@@ -294,29 +294,30 @@
    (apply str)))
 
 ;; https://projecteuler.net/problem=14
+
+(def collatz-fn
+  (memoize
+   (fn [n]
+     (cond (= 1 n) 1
+           (even? n) (inc (collatz-fn (/ n 2)))
+           :else (inc (collatz-fn (inc (* 3 n))))))))
+
 (defn problem-14 []
-  (let [collatz-fn
-        (memoize
-         (fn [n]
-           (cond (= 1 n) 1
-                 (even? n) (inc (collatz-fn (/ n 2)))
-                 :else (inc (collatz-fn (inc (* 3 n)))))))])
   (->> (range 1 1000001)
        (map #(vector % (collatz-fn %)))
        (sort-by second >)
        (ffirst)))
 
 ;; https://projecteuler.net/problem=15
+(def routes
+ (memoize
+  (fn [rows cols]
+    (cond (zero? rows) 1
+          (zero? cols) 1
+          :else (+ (routes (dec rows) cols) (routes rows (dec cols)))))))
+
 (defn problem-15 []
-  (let
-   [routes
-    (memoize
-     (fn [rows cols]
-       (cond (zero? rows) 1
-             (zero? cols) 1
-             :else (+ (routes (dec rows) cols) (routes rows (dec cols))))))]
-    (routes 20 20)))
->>>>>>> f738cb1c7195d467b596252d294194276959634c
+  (routes 20 20))
 
 ;; https://projecteuler.net/problem=16
 
@@ -934,9 +935,6 @@
        (apply max)))
 
 ; https://projecteuler.net/problem=42
-<<<<<<< HEAD
-=======
-
 (defn gen-triangle-numbers
   ([n]
    (lazy-seq (cons (/ (* n (inc n)) 2)
@@ -944,7 +942,6 @@
   ([]
    (gen-triangle-numbers 1)))
 
->>>>>>> f738cb1c7195d467b596252d294194276959634c
 (defn word-value [word]
   (->> word
        (map #(- (int %) 64))
@@ -1114,20 +1111,6 @@
 (defn are-permutations-of-each-other? [num1 num2]
   (= (sort (get-digits num1)) (sort (get-digits num2))))
 
-;; Taken from https://stackoverflow.com/a/7625207/466694
-(defn gen-primes "Generates an infinite, lazy sequence of prime numbers"
-  []
-  (letfn [(reinsert [table x prime]
-            (update-in table [(+ prime x)] conj prime))
-          (primes-step [table d]
-                       (if-let [factors (get table d)]
-                         (recur (reduce #(reinsert %1 d %2) (dissoc table d) factors)
-                                (inc d))
-                         (lazy-seq (cons d (primes-step (assoc table (* d d) (list d))
-                                                        (inc d))))))]
-    (primes-step {} 2)))
-
->>>>>>> f738cb1c7195d467b596252d294194276959634c
 (defn problem-49 []
   (let [four-digit-primes (->> (gen-primes)
                                (drop-while #(< % 1000))
