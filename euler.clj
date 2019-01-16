@@ -1815,7 +1815,7 @@
     (if (> c n)
       coll
       (let [k (int (/ (+ n b) d))]
-        (recur c d (- (* k c) a) (- (* k d) b) 
+        (recur c d (- (* k c) a) (- (* k d) b)
                (let [r (/ a b)]
                  (if (and (> r lower-limit) (< r upper-limit))
                    (conj coll (/ a b))
@@ -1824,3 +1824,30 @@
 (defn problem-73 []
   (count (farey-fn 12000 1/3 1/2)))
 
+;; https://projecteuler.net/problem=75
+(defn- gcd [a b]
+  (if (zero? b)
+    a
+    (recur b (mod a b))))
+
+;; https://en.wikipedia.org/wiki/Pythagorean_triple#Generating_a_triple
+
+(let [max-sum 1500000
+      ;; Only need to check until sqrt(max-sum)
+      m-limit (int (Math/sqrt max-sum))
+      pairs (->> (for [m (range 2 m-limit)
+                       n (range 1 m-limit)]
+                   [m n])
+                 (filter (fn [[m n]] (< n m)))
+                 (filter (fn [[m n]] (or (and (odd? m) (even? n))
+                                         (and (even? m) (odd? n)))))
+                 (filter #(= (apply gcd %) 1))
+                 (map (fn [[m n]] (+ (* 2 (square m)) (* 2 m n)))))
+      update-fn (fn [m s]
+                  (->> (iterate #(+ % s) s)
+                       (take-while #(<= % max-sum))
+                       (reduce (fn [m ps] (update m ps (fnil inc 0)))
+                               m)))
+      m (reduce update-fn {} pairs)]
+  (count
+   (filter (fn [[k v]] (= v 1)) m)))
