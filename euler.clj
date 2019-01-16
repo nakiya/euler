@@ -305,10 +305,11 @@
        (even? n) (collatz-seq (/ n 2) (inc count))
        :else (collatz-seq (inc (* 3 n)) (inc count))))))
 
-(->> (range 1 1000001)
-     (map #(vector (collatz-seq % 1) %))
-     (sort-by first >)
-     (first))
+(defn problem-14 []
+  (->> (range 1 1000001)
+       (map #(vector (collatz-seq % 1) %))
+       (sort-by first >)
+       (first)))
 
 ;; https://projecteuler.net/problem=16
 
