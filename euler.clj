@@ -1824,6 +1824,38 @@
 (defn problem-73 []
   (count (farey-fn 12000 1/3 1/2)))
 
+;; https://projecteuler.net/problem=74
+(defn- factorial
+  ([n prod]
+   (cond (zero? n) prod
+         :else (recur (dec n) (* prod n))))
+  ([n]
+   (factorial n 1)))
+
+(defn- get-digits [n]
+  (->> (str n)
+       (map #(- (int %) 48)))) 
+
+(def factorials-under-10 (->> (range 10)
+                              (mapv factorial)))
+
+(def chain-length
+  (memoize
+   (fn
+     ([n curr-items len] 
+      (let [sum-fact (->> (get-digits n)
+                          (map #(get factorials-under-10 %))
+                          (reduce +))]
+        (if (get curr-items sum-fact)
+          len
+          (recur sum-fact (conj curr-items sum-fact) (inc len)))))
+     ([n] (chain-length n #{n} 1)))))
+
+(defn problem-74 []
+  (->> (range 1000000)
+       (filter #(= (chain-length %) 60))
+       (count)))
+
 ;; https://projecteuler.net/problem=75
 (defn- gcd [a b]
   (if (zero? b)
