@@ -1953,3 +1953,29 @@
        (drop 1)
        (filter #(zero? (mod (part %) 1000000)))
        (first)))
+
+;; https://projecteuler.net/problem=79
+
+(defn- is-perfect-square? [n]
+  (let [sq (int (Math/sqrt n))]
+    (= n (* sq sq))))
+
+(defn- sqrt-step [rem curr-sqrt steps-left]
+  (if (zero? steps-left)
+    curr-sqrt
+    (let [hundredrem (* 100 rem)
+          double-sqrt (* 2 curr-sqrt)
+          next-digit (->> (range 10)
+                          (reverse)
+                          (filter #(< (* (+ (* 10 double-sqrt) %) %) hundredrem))
+                          (first))]
+      (recur (- hundredrem (* (+ (* 10 double-sqrt) next-digit) next-digit))
+             (+ (* 10 curr-sqrt) next-digit)
+             (dec steps-left)))))
+
+(->> (range 2 100)
+     (filter is-perfect-square?)
+     (map #(sqrt-step (biginteger (int (Math/sqrt %)))
+                      (biginteger (- % (int (Math/sqrt %))))
+                      100))
+     )
