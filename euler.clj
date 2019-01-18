@@ -1922,3 +1922,34 @@
      (drop 2)
      (filter #(> (cc % (count-primes-less-than %)) 5000))
      (first)))
+
+;; https://projecteuler.net/problem=78
+
+(declare part)
+
+;; https://en.wikipedia.org/wiki/Partition_function_(number_theory)#Recurrence_relations
+
+(defn- rec-fn [n k]
+  (* (if (odd? k) 1 -1)
+     (part (- n (/ (* k (dec (* 3 k))) 2)))))
+
+(def part
+ (memoize 
+  (fn [n]
+    (cond (= n 1) 1N
+          (= n 0) 1N
+          (< n 0) 0N
+          :else
+          (let [sq24 (Math/sqrt (inc (* 24 n)))
+                kmin (int (- (/ (dec sq24) 6)))
+                kmax (inc (int (/ (inc sq24) 6)))]
+            (->> (range kmin kmax)
+                (filter (complement zero?))
+                (map #(rec-fn n %))
+                (reduce +)))))))
+
+(defn problem-78 []
+  (->> (range)
+       (drop 1)
+       (filter #(zero? (mod (part %) 1000000)))
+       (first)))
