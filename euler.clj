@@ -1897,3 +1897,28 @@
 
 (defn problem-76 []
   (sum-count 100 100))
+
+;; https://projecteuler.net/problem=77
+
+(def primes (into [] (->> (gen-primes)
+                          (take 100))))
+
+(def cc
+  (memoize
+    (fn [amount ks]
+      (cond (= amount 0) 1
+            (< amount 0) 0
+            (= ks 0) 0
+            :else (+ (cc amount (dec ks))
+                      (cc (- amount (nth primes (dec ks))) ks))))))
+
+(defn- count-primes-less-than [n]
+  (->> primes
+       (filter #(< % n))
+       (count)))
+
+(defn problem-77 []
+  (->> (range)
+     (drop 2)
+     (filter #(> (cc % (count-primes-less-than %)) 5000))
+     (first)))
