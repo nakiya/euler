@@ -1954,11 +1954,7 @@
        (filter #(zero? (mod (part %) 1000000)))
        (first)))
 
-;; https://projecteuler.net/problem=79
-
-(defn- is-perfect-square? [n]
-  (let [sq (int (Math/sqrt n))]
-    (= n (* sq sq))))
+;; https://projecteuler.net/problem=80
 
 (defn- sqrt-step [rem curr-sqrt steps-left]
   (if (zero? steps-left)
@@ -1973,9 +1969,14 @@
              (+ (* 10 curr-sqrt) next-digit)
              (dec steps-left)))))
 
-(->> (range 2 100)
-     (filter is-perfect-square?)
-     (map #(sqrt-step (biginteger (int (Math/sqrt %)))
-                      (biginteger (- % (int (Math/sqrt %))))
-                      100))
-     )
+(defn problem-80 []
+  (->> (range 2 100)
+      (filter (complement is-perfect-square?))
+      (map #(sqrt-step (biginteger (- % (square (int (Math/sqrt %)))))
+                        (biginteger (int (Math/sqrt %)))
+                        99))
+      (map str)
+      ;; Under 100, sqrt is less than 10 so, only one digit.
+      (map #(map (fn [x] (- (int x) 48)) %))
+      (map #(reduce + %))
+      (reduce +)))
