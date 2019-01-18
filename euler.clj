@@ -1883,3 +1883,17 @@
       m (reduce update-fn {} pairs)]
   (count
    (filter (fn [[k v]] (= v 1)) m)))
+
+;; https://projecteuler.net/problem=76
+
+(def sum-count 
+ (memoize 
+  (fn [n max]
+    (cond (< n 0) 0
+          (= n 0) 1
+          :else (->> (range 1 max)
+                      (map #(sum-count (- n %) (inc %)))
+                      (reduce +))))))
+
+(defn problem-76 []
+  (sum-count 100 100))
