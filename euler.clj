@@ -1995,7 +1995,7 @@
         (loop [cs costs row 0 col 0]
           (if (= row 80)
             cs
-            (recur (cond (zero? row) (assoc-in cs [row col] 
+            (recur (cond (zero? row) (assoc-in cs [row col]
                                                (->> (range 0 (inc col))
                                                     (map #(get-in matrix [0 %]))
                                                     (reduce +)))
@@ -2009,3 +2009,51 @@
                    (if (= (inc col) 80) (inc row) row)
                    (if (= (inc col) 80) 0 (inc col)))))]
     (get-in costs [79 79])))
+
+;; https://projecteuler.net/problem=82
+
+(defn- sweep-down [cost-column val-column]
+  (->> cost-column
+       (map-indexed #(vector %1 %2))
+       (into (sorted-map))
+       (rest)
+       (reduce (fn [res-column [i c]] (conj res-column
+                                            (min c
+                                                 (+ (get val-column i)
+                                                    (nth res-column (dec i))))))
+               [(first cost-column)])
+       (rest)
+       (concat [(first cost-column)])
+       (into [])))
+
+(defn- sweep-up [cost-column val-column]
+  (into [] (reverse (sweep-down (into [] (reverse cost-column))
+                                (into [] (reverse val-column))))))
+
+;; (sweep-up (sweep-down [18 10 10 10 2] [9 1 1 1 1]) [9 1 1 1 1])
+
+(defn problem-82 []
+  (let [matrix
+        (->> (str/split (slurp "p082_matrix.txt") #"[,\s]")
+             (map #(Integer/parseInt %))
+             (partition 80)
+             (map #(into [] %))
+             (into []))
+        dim 80
+        ;; matrix [[9 9 9 9 9]
+        ;;         [9 1 1 1 1]
+        ;;         [9 1 9 9 9]
+        ;;         [9 1 9 9 9]
+        ;;         [1 1 9 9 9]]
+        costs (into [] (for [i (range dim)] (into [(get-in matrix [i 0])] (repeat (dec dim) 0))))
+        costs
+        (loop [colindex 1 sum-column (into [] (map first matrix))]
+          (if (= colindex dim)
+            sum-column
+            (let [val-column (into [] (map #(nth % colindex) matrix))
+                  cost-column (into [] (map + sum-column val-column))]
+              (recur (inc colindex)
+                     (sweep-up (sweep-down cost-column val-column) val-column)))))]
+    (->> costs
+         (sort)
+         (first))))
