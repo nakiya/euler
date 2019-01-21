@@ -1980,3 +1980,32 @@
       (map #(map (fn [x] (- (int x) 48)) %))
       (map #(reduce + %))
       (reduce +)))
+
+;; https://projecteuler.net/problem=81
+
+(defn problem-81 []
+  (let [matrix
+        (->> (str/split (slurp "p081_matrix.txt") #"[,\s]")
+             (map #(Integer/parseInt %))
+             (partition 80)
+             (map #(into [] %))
+             (into []))
+        costs (into [] (for [i (range 80)] (into [] (repeat 80 0))))
+        costs 
+        (loop [cs costs row 0 col 0]
+          (if (= row 80)
+            cs
+            (recur (cond (zero? row) (assoc-in cs [row col] 
+                                               (->> (range 0 (inc col))
+                                                    (map #(get-in matrix [0 %]))
+                                                    (reduce +)))
+                         (zero? col) (assoc-in cs [row col]
+                                               (->> (range 0 (inc row))
+                                                    (map #(get-in matrix [% 0]))
+                                                    (reduce +)))
+                         :else (assoc-in cs [row col]
+                                         (min (+ (get-in matrix [row col]) (get-in cs [(dec row) col]))
+                                              (+ (get-in matrix [row col]) (get-in cs [row (dec col)])))))
+                   (if (= (inc col) 80) (inc row) row)
+                   (if (= (inc col) 80) 0 (inc col)))))]
+    (get-in costs [79 79])))
