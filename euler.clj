@@ -1,7 +1,9 @@
 (ns eul
   (:require [clojure.string :as str]
             [clojure.set :as cs]
-            [clojure.math.combinatorics :as combo]))
+            [clojure.math.combinatorics :as combo]
+            [clojure.data.priority-map :as pm])
+  (:use [clojure.test :only [testing is]]))
 
 ; https://projecteuler.net/problem=1
 (defn problem-1 []
@@ -2119,6 +2121,7 @@
 ;; There is no need to simulate board. Just keep track of position.
 ;; Is there a need to play multiple games?
 
+
 (defn- roll-dice [sides]
   (->> (range 2)
        (map (fn [_] (inc (rand-int sides))))
@@ -2132,54 +2135,45 @@
 
 (def go-to-JAIL (fn [_] 10))
 
-(defn- create-CH-cards []
-  (shuffle 
-   (into 
+(defn- create-CC-cards []
+  (shuffle
+   (into
     [(fn [_] 0)    ; Advance to GO
      go-to-JAIL]  ; Go to JAIL
     (repeat 14 identity))))
 
 (def go-to-next-R
   (fn [pos]
-    (cond (or (< pos 5) (> pos 35)) 5
-          (and (< pos 15) (> pos 5)) 15
-          (and (< pos 25) (> pos 15)) 25
-          (and (< pos 35) (> pos 25)) 35)))
-
-(testing "go-to-next-R"
-  (is (= 5 (go-to-next-R 36)))
-  (is (= 15 (go-to-next-R 7)))
-  (is (= 25 (go-to-next-R 22))))
+    (case pos
+      7 15
+      22 25
+      36 5)))
 
 (def go-to-next-U
   (fn [pos]
-    (cond (or (< pos 12) (> pos 28)) 12
-          :else 28)))
+    (case pos
+      7 12
+      22 28
+      36 12)))
 
-(testing "go-to-next-U"
-  (is (= 12 (go-to-next-U 36)))
-  (is (= 12 (go-to-next-U 7)))
-  (is (= 28 (go-to-next-U 22))))
-
-(defn- create-CC-cards []
+(defn- create-CH-cards []
   (shuffle
    (into
     [(fn [_] 0)    ; Advance to GO
      go-to-JAIL    ; Go to JAIL
-     (fn [_] 11)   ; Go to C1     
+     (fn [_] 11)   ; Go to C1
      (fn [_] 24)   ; Go to E3
      (fn [_] 39)   ; Go to H2
      (fn [_] 5)    ; Go to R1
      go-to-next-R
      go-to-next-R
      go-to-next-U
-     (fn [pos] (cond (> pos 2) (- pos 3)
-                     :else (+ 40 pos -3))) ; Go back 3 squares
+     (fn [pos] (- pos 3))
      ]
     (repeat 6 identity))))
 
-(defn- draw-card [pile]
-  [(first pile)
+(defn- draw-card-and-move [pile pos]
+  [((first pile) pos)
    (conj (subvec pile 1) (first pile))])
 
 (defn- is-CC? [pos]
@@ -2206,17 +2200,54 @@
   (is (not (are-three-consecutive-doubles? [] [4 4])))
   (is (not (are-three-consecutive-doubles? [[3 3]] [4 4]))))
 
-(loop [pos 0
-       history []
-       CC-cards (create-CC-cards)
-       CH-cards (create-CH-cards)
-       last-two-rolls []]
-  (let [dice-sides 6
-        roll (roll-dice dice-sides)]
-    (if (are-three-consecutive-doubles? last-two-rolls roll)
-      (recur (go-to-JAIL pos)
-             (conj history pos)
-             CC-cards
-             CH-cards
-             [])
-      (let [pos ]))))
+(defn- move-forward [pos [dice1 dice2 :as roll]]
+  (let [pos (+ pos dice1 dice2)]
+    (if (> pos 39)
+      (- pos 40)
+      pos)))
+
+(defn- play-itrs [itrs sides]
+  (let [h
+        (loop [itr 0
+               pos 0
+               history [0]
+               CC-cards (create-CC-cards)
+               CH-cards (create-CH-cards)
+               last-two-rolls []]
+          (if (> itr itrs)
+            history
+            (let [dice-sides sides
+                  roll (roll-dice dice-sides)]
+              (if (are-three-consecutive-doubles? last-two-rolls roll)
+                (recur (inc itr)
+                       (go-to-JAIL pos)
+                       (conj history pos)
+                       CC-cards
+                       CH-cards
+                       [])
+                (let [pos (move-forward pos roll)
+                      [pos CH-cards] (if (is-CH? pos) (draw-card-and-move CH-cards pos)
+                                         [pos CH-cards])
+                      [pos CC-cards] (if (is-CC? pos) (draw-card-and-move CC-cards pos)
+                                         [pos CC-cards])
+                      pos (if (is-G2J pos) (go-to-JAIL pos) pos)]
+                  (recur (inc itr)
+                         pos
+                         (conj history pos)
+                         CC-cards
+                         CH-cards
+                         (cond (= 2 (count last-two-rolls))
+                               (conj (subvec last-two-rolls 1) roll)
+                               :else (conj last-two-rolls roll))))))))
+        occur-map (->> (frequencies h)
+                       (map (fn [[k v]] [v k]))
+                       (sort-by first >))]
+    occur-map))
+
+;; The solution is correct for 4 sides. But sometimes for 6 sides, the solution is wrong.
+
+(defn problem-84 []
+  (->> (play-itrs 1000000 4)
+       (map (comp str second))
+       (take 3)
+       (apply str)))
