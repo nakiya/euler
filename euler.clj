@@ -2057,3 +2057,166 @@
     (->> costs
          (sort)
          (first))))
+
+;; https://projecteuler.net/problem=83
+
+;; https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Practical_optimizations_and_infinite_graphs
+;; procedure UniformCostSearch (Graph, start, goal)
+;;  node ← start
+;;  cost ← 0
+;;  frontier ← priority queue containing node only
+;;  explored ← empty set
+;;  do
+;;   if frontier is empty
+;;    return failure
+;;   node ← frontier.pop ()
+;;   if node is goal
+;;    return solution
+;;   for each of node's neighbors n
+;;    if n is not in explored
+;;     frontier.add (n)
+;;     explored.add (n)
+
+(defn- ucs [start is-goal? get-neighbors]
+  "start is the start node
+   is-goal? takes a node and returns true if it is (a) goal node, false otherwise
+   get-neighbors takes a node and returns a map of neighbor nodes to costs between node and neighbor nodes"
+  (loop [frontier (pm/priority-map start 0)
+         explored #{}]
+    (if (empty? frontier)
+      false
+      (let [[node cost] (peek frontier)
+            frontier (pop frontier)]
+        (if (is-goal? node)
+          cost
+          (let [neighbors (->> (get-neighbors node)
+                               (filter #(not (explored (first %)))))]
+            (recur (reduce #(assoc %1 (first %2) (+ cost (second %2))) frontier neighbors)
+                   (reduce conj explored (map first neighbors)))))))))
+
+(defn problem-83 []
+  (let [matrix
+        (->> (str/split (slurp "p083_matrix.txt") #"[,\s]")
+             (map #(Integer/parseInt %))
+             (partition 80)
+             (map #(into [] %))
+             (into []))
+        dim 80
+        start [0 0]
+        is-goal? (fn [[x y]] (and (= x (dec dim)) (= y (dec dim))))
+        get-neighbors (fn [[x y]] (->> [[0 -1] [1 0] [0 1] [-1 0]]
+                                       (map (fn [[x y] [dx dy]] [(+ x dx) (+ y dy)]) (repeat [x y]))
+                                       (filter (fn [[rx ry]] (and (>= rx 0) (>= ry 0)
+                                                                  (< rx dim) (< ry dim)
+                                                                  (or (not= rx x) (not= ry y)))))
+                                       (map (fn [[rx ry]] [[rx ry] (get-in matrix [rx ry])]))))]
+    (+ (ucs start is-goal? get-neighbors)
+       (get-in matrix [0 0]))))
+
+;; https://projecteuler.net/problem=84
+
+;; This is a simulation task.
+;; There is no need to simulate board. Just keep track of position.
+;; Is there a need to play multiple games?
+
+(defn- roll-dice [sides]
+  (->> (range 2)
+       (map (fn [_] (inc (rand-int sides))))
+       (vec)))
+
+(defn- is-doubles? [[dice1-roll dice2-roll]]
+  (= dice1-roll dice2-roll))
+
+(defn- roll-value [[dice1-roll dice2-roll]]
+  (+ dice1-roll dice2-roll))
+
+(def go-to-JAIL (fn [_] 10))
+
+(defn- create-CH-cards []
+  (shuffle 
+   (into 
+    [(fn [_] 0)    ; Advance to GO
+     go-to-JAIL]  ; Go to JAIL
+    (repeat 14 identity))))
+
+(def go-to-next-R
+  (fn [pos]
+    (cond (or (< pos 5) (> pos 35)) 5
+          (and (< pos 15) (> pos 5)) 15
+          (and (< pos 25) (> pos 15)) 25
+          (and (< pos 35) (> pos 25)) 35)))
+
+(testing "go-to-next-R"
+  (is (= 5 (go-to-next-R 36)))
+  (is (= 15 (go-to-next-R 7)))
+  (is (= 25 (go-to-next-R 22))))
+
+(def go-to-next-U
+  (fn [pos]
+    (cond (or (< pos 12) (> pos 28)) 12
+          :else 28)))
+
+(testing "go-to-next-U"
+  (is (= 12 (go-to-next-U 36)))
+  (is (= 12 (go-to-next-U 7)))
+  (is (= 28 (go-to-next-U 22))))
+
+(defn- create-CC-cards []
+  (shuffle
+   (into
+    [(fn [_] 0)    ; Advance to GO
+     go-to-JAIL    ; Go to JAIL
+     (fn [_] 11)   ; Go to C1     
+     (fn [_] 24)   ; Go to E3
+     (fn [_] 39)   ; Go to H2
+     (fn [_] 5)    ; Go to R1
+     go-to-next-R
+     go-to-next-R
+     go-to-next-U
+     (fn [pos] (cond (> pos 2) (- pos 3)
+                     :else (+ 40 pos -3))) ; Go back 3 squares
+     ]
+    (repeat 6 identity))))
+
+(defn- draw-card [pile]
+  [(first pile)
+   (conj (subvec pile 1) (first pile))])
+
+(defn- is-CC? [pos]
+  (or (= pos 2) (= pos 17) (= pos 33)))
+
+(defn- is-CH? [pos]
+  (or (= pos 7) (= pos 22) (= pos 36)))
+
+(defn- is-G2J [pos]
+  (= pos 30))
+
+(defn- are-three-consecutive-doubles? [last-two-rolls this]
+  (if (not= (count last-two-rolls) 2)
+    false
+    (and (is-doubles? (first last-two-rolls))
+         (is-doubles? (second last-two-rolls))
+         (is-doubles? this))))
+
+(testing "are-three-consecutive-doubles?"
+  (is (are-three-consecutive-doubles? [[2 2] [2 2]] [1 1]))
+  (is (are-three-consecutive-doubles? [[1 1] [4 4]] [5 5]))
+  (is (not (are-three-consecutive-doubles? [[1 1] [5 1]] [3 3])))
+  (is (not (are-three-consecutive-doubles? [[1 1] [5 5]] [3 2])))
+  (is (not (are-three-consecutive-doubles? [] [4 4])))
+  (is (not (are-three-consecutive-doubles? [[3 3]] [4 4]))))
+
+(loop [pos 0
+       history []
+       CC-cards (create-CC-cards)
+       CH-cards (create-CH-cards)
+       last-two-rolls []]
+  (let [dice-sides 6
+        roll (roll-dice dice-sides)]
+    (if (are-three-consecutive-doubles? last-two-rolls roll)
+      (recur (go-to-JAIL pos)
+             (conj history pos)
+             CC-cards
+             CH-cards
+             [])
+      (let [pos ]))))
