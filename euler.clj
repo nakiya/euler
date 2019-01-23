@@ -2325,6 +2325,7 @@
            :else (+ (int-dist-cuboids (dec dim))
                     (->> (combo/combinations (range 1 (inc dim)) 2)
                          (map #(conj % dim))
+                         (concat (map #(list % % dim) (range 1 (inc dim))))
                          (filter shortest-cuboid-dist-has-int-length?)
                          (count)))))))
 
