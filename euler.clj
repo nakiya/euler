@@ -2304,3 +2304,62 @@
              (map #(vector (triangle-number %) %))
              (into {}))]
     (* (tri-map (first candidates)) (tri-map (second candidates)))))
+
+;; https://projecteuler.net/problem=86
+;; See: https://math.stackexchange.com/a/1189884/7078 (Second case)
+;; So lengths = [sqrt(l^2 + b^2 + h^2 + 2bh), sqrt(l^2 + b^2 + h^2 + 2lb), sqrt(l^2 + b^2 + h^2 + 2lh)]
+;; Shortest length is the smallest of the above. == sqrt(l^2 + b^2 + h^2 + min(2bh, 2lb, 2lh))
+(defn- shortest-cuboid-dist-has-int-length? [[a b c]]
+  (->> (min (* a b) (* b c) (* c a))
+       (* 2)
+       (+ (square a) (square b) (square c))
+       (is-perfect-square?)))
+
+;; if F(n) denotes number of integer shortest lengths for cuboids with dimensions equal to or less than (n,n,n),
+;; F(i+1) = F(i) + int_lengths(cuboids with at least one side dimension of i+1)
+
+(def int-dist-cuboids
+  (memoize
+   (fn [dim]
+     (cond (= 1 dim) 0
+           :else (+ (int-dist-cuboids (dec dim))
+                    (->> (combo/combinations (range 1 (inc dim)) 2)
+                         (map #(conj % dim))
+                         (filter shortest-cuboid-dist-has-int-length?)
+                         (count)))))))
+
+(let [M 100
+      M2 (* 2 M)
+      ;; I don't understand how the m-limit below comes, but it seems to work.
+      m-limit (inc (int (* 3/2 (Math/sqrt M))))
+      coprime-pairs (->> (for [m (range 2 m-limit)
+                               n (range 1 m)]
+                           [m n])
+                         (filter (fn [[m n]] (or (and (odd? m) (even? n))
+                                                 (and (even? m) (odd? n)))))
+                         (filter #(= (apply gcd %) 1))
+                         (map (fn [[m n]]
+                                (vector (- (square m) (square n))
+                                        (* 2 m n)))))
+      are-possible-sides-in-cuboid? (fn [[a b]]
+                                      (and (or (< a M) (< b M))
+                                           (< a M2)
+                                           (< b M2)))
+      max-k (fn [[a b]]
+              (max (int (/ M2 a))
+                   (int (/ M2 b))))
+      ; _ (println (take 10 coprime-pairs))
+      all-pairs (->> coprime-pairs
+                     (map (fn [[a b :as pair]] (map #(vector (* % a) (* % b))
+                                                    (drop 1 (range (inc (max-k pair))))))))
+      num-sum-ways (fn [x] (if (<= x 100) 
+                             (quot x 2)
+                             (- 100 (quot x 2))))
+      num-cuboid-ways (fn [[a b]] (+ (num-sum-ways a)
+                                     (num-sum-ways b)))]
+  (->> all-pairs
+       (mapcat identity)
+       (filter are-possible-sides-in-cuboid?)
+       (map num-cuboid-ways)
+       (reduce +)))
+
