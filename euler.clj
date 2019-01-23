@@ -2378,3 +2378,21 @@
 
 (defn problem-86 []
   (get-int-dist-above 1000000))
+
+;; https://projecteuler.net/problem=87
+
+(defn problem-87 []
+  (let [limit 50000000
+        get-prime-powers (fn [gen-fn]
+                           (->> (gen-primes)
+                                (map gen-fn)
+                                (take-while #(< % limit))))
+        squares (get-prime-powers #(* % %))
+        cubes (get-prime-powers #(* % % %))
+        fourths (get-prime-powers #(* % % % %))]
+    (->>
+     (for [i squares j cubes k fourths]
+       (+ i j k))
+     (filter #(< % limit))
+     (distinct)
+     (count))))
