@@ -2251,3 +2251,56 @@
        (map (comp str second))
        (take 3)
        (apply str)))
+
+;; https://projecteuler.net/problem=85
+
+;; Consider 4x3 rectangle. The number of ways to create sub-rectangles is:
+;; 1x1 = 12, 2x1 = 9, 3x1 = 6, 4x1 = 3 == 30
+;; 1x2 = 8,  2x2 = 6, 3x2 = 4, 4x2 = 2 == 20
+;; 1x3 = 4,  2x3 = 3, 3x3 = 2, 4x4 = 1 == 10
+;;                                     == 6 * 10 = triangle-number(3) * triangle-number(4)
+;; In general, a rectangle with width w and height h will have [triangle-number(w) * triangle-number(h)] sub rectangles.
+
+;; Therefore, to find the grid which has close to 2 million sub rectangles, need to find the product of two triangle numbers which are closest to 2 million.
+;; Therefore, neither of the two triangle numbers can exceed 2 milllion.
+;; So, find products of triangle numbers below 2 million, find closest to 2 million.
+
+(defn- triangle-number [n]
+  (/ (* n (inc n)) 2))
+
+;; Find entry closest to given key in a sorted-map
+;; See : https://stackoverflow.com/a/1983856/466694
+(defn abs [x] (if (neg? x) (- x) x))
+(defn find-closest [ss k]
+  (if-let [a (first (rsubseq ss <= k))]
+    (if (= a k)
+      a
+      (if-let [b (first (subseq ss >= k))]
+        (if (< (abs (- k b)) (abs (- k a)))
+          b
+          a)))
+    (first (subseq ss >= k))))
+
+(defn problem-85 []
+  (let [tri-nums
+        (->> (range)
+             (drop 1)
+             (map triangle-number)
+             (take-while #(<= % 3000000)))
+        tri-nums (apply sorted-set tri-nums)
+        candidates
+        (->> tri-nums
+             (take-while #(<= % 2000000))
+             (map #(vector % (find-closest tri-nums (/ 2000000 %))))
+             (map #(vector (apply * %) %))
+             (sort-by (fn [[prod _]] (Math/abs (- 2000000 prod))) <)
+             (first)
+             (second))
+        tri-map
+        (->> (range)
+             (drop 1)
+             (take-while #(or (<= (triangle-number %) (first candidates))
+                              (<= (triangle-number %) (second candidates))))
+             (map #(vector (triangle-number %) %))
+             (into {}))]
+    (* (tri-map (first candidates)) (tri-map (second candidates)))))
