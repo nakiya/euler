@@ -2524,3 +2524,6 @@
          (map #(min-prod-sums %))
          (distinct)
          (reduce +))))
+
+(defn problem-88 []
+  (k-sum 12000))
