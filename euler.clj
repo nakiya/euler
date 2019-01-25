@@ -2396,3 +2396,115 @@
      (filter #(< % limit))
      (distinct)
      (count))))
+
+;; clj-xchart test.
+; (chart/view
+;  (chart/xy-chart
+;   {"Cuboids with int distance"
+;    (let [dists (->> (gen-int-dist-cuboids)
+;                     (drop 2)
+;                     (take 200))]
+;      {:x (map first dists)
+;       :y (map second dists)})}
+;   {:title "Cuboids with int shortest distance"
+;    :x-axis {:title "M"}
+;    :y-axis {:title "Number of cuboids with int distance"}}))
+   
+; ;; https://projecteuler.net/problem=88
+
+;; (defn- partitions [n]
+;;   (if (zero? n) []
+;;       (for [p (partitions (dec n))]
+;;         (let [res (into [] (concat [1] p))]
+;;           (if (and (not (empty? p))
+;;                    (or (< (count p) 2)
+;;                        (> (second p) (first p))))
+;;             (conj res (concat (vec (inc (first p))) (subvec p 1)))
+;;             res)))))
+
+;; This is essentially problem 76. Just need to generate the partitions instead of counting the number of partitions.
+
+;; See http://code.activestate.com/recipes/218332/
+;; def partitions(n):
+;; 	# base case of recursion: zero is the sum of the empty list
+;; 	if n == 0:
+;; 		yield []
+;; 		return
+		
+;; 	# modify partitions of n-1 to form partitions of n
+;; 	for p in partitions(n-1):
+;; 		yield [1] + p
+;; 		if p and (len(p) < 2 or p[1] > p[0]):
+;; 			yield [p[0] + 1] + p[1:]
+
+(defn- gen-partitions
+  ([n prev]
+   (let [get-next-terms 
+         (fn [p]
+           (let [p1 [(into [] (concat [1] p))]]
+             (if (or (< (count p) 2)
+                     (> (second p) (first p)))
+               (conj p1 (into [] (concat [(inc (first p))] (subvec p 1))))
+               p1)))
+         curr (mapcat
+               (fn [p] (get-next-terms p))
+               prev)]
+     (lazy-seq (cons curr (gen-partitions (inc n) curr)))))
+  ([]
+   (gen-partitions 1 [[1]])))
+
+(defn- partition-map [max]
+  (->> (gen-partitions)
+       (take (dec max))
+       (map #(remove (fn [x] (= (count x) 1)) %))
+       (interleave (range 2 max))
+       (partition 2)
+       (map #(into [] %))
+       (into (sorted-map 1 [[1]]))))
+
+;; Max 14 factors for numbers below 24000. This is 2^14. So need partitions of numbers at least until 14.
+(def partition-cache (partition-map 16))
+
+(defn- get-factors
+  ([n div factors]
+    (cond (<= n 1) factors
+          (= 0 (mod n div)) (recur (quot n div) div (conj factors div))
+          :else (recur n (inc div) factors)))
+  ([n]
+    (get-factors n 2 [])))
+
+(def exp
+  (memoize
+   (fn [b n]
+     (nth (iterate #(* b %) 1) n))))
+
+(defn- red-vals [factor power]
+  (->> (partition-cache power)
+       (map #(map (fn [x] (exp factor x)) %))
+       (map #(- (reduce + %) (count %)))
+       (distinct)))
+
+(defn- get-ks [n]
+  (let [factors (get-factors n)
+        factor-freqs (frequencies factors)
+        ]
+    factor-freqs))
+
+(def factors-map
+  (->> (range 24000)
+       (map get-factors)
+       (interleave (range 24000))
+       (partition 2)
+       (map vec)
+       (into (sorted-map))))
+
+(def multiplicative-partition
+  (memoize
+   (fn [n]
+     (conj (set (for [i (factors-map n)
+                      j (multiplicative-partition (/ n i))]
+                   (sort (flatten [i j])))) (list n)))))
+
+(->> (range 24000)
+     (map multiplicative-partition)
+     (map count))
