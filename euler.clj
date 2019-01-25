@@ -2501,10 +2501,26 @@
 (def multiplicative-partition
   (memoize
    (fn [n]
-     (conj (set (for [i (factors-map n)
+     (conj (set (for [i (range 2 n)
+                      :when (zero? (rem n i))
                       j (multiplicative-partition (/ n i))]
                    (sort (flatten [i j])))) (list n)))))
 
-(->> (range 24000)
-     (map multiplicative-partition)
-     (map count))
+(defn- find-k [n partition]
+  (- (+ n (count partition)) (reduce + partition)))
+
+(defn- find-ks [n]
+  (->> (multiplicative-partition n)
+       (map #(find-k n %))
+       (distinct)))
+
+(defn- k-sum [k]
+  (let [min-prod-sums
+        (->> (range (inc (* 2 (inc k))))
+             (mapcat #(map (fn [x] (vector x %)) (find-ks %)))
+             (reduce #(update %1 (first %2) (fnil identity (second %2))) (sorted-map)))]
+    (->> (range (inc k))
+         (drop 1)
+         (map #(min-prod-sums %))
+         (distinct)
+         (reduce +))))
