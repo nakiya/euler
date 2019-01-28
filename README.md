@@ -1,5 +1,5 @@
 # euler
-Solutions to problems #1 to #87 in Clojure.
+Solutions to problems #1 to #90 in Clojure.
 
 Sometimes I used a windows machine where lein couldn't download dependencies (Because I was in a corporate network and firewall blocked me off) and where I didn't have a proper IDE. In order to minimize suffering, I kept everything in a single file.
 
