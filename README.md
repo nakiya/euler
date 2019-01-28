@@ -13,4 +13,4 @@ Clojure lends itself to this sort of problems and it's a joy to see the transfor
 
 This is way more fun than it has any right to be.
 
-![]()
+![](https://projecteuler.net/profile/dumrat.png)
