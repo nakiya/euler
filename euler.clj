@@ -2424,79 +2424,79 @@
 
 ;; This is essentially problem 76. Just need to generate the partitions instead of counting the number of partitions.
 
-;; See http://code.activestate.com/recipes/218332/
-;; def partitions(n):
-;; 	# base case of recursion: zero is the sum of the empty list
-;; 	if n == 0:
-;; 		yield []
-;; 		return
+;; ;; See http://code.activestate.com/recipes/218332/
+;; ;; def partitions(n):
+;; ;; 	# base case of recursion: zero is the sum of the empty list
+;; ;; 	if n == 0:
+;; ;; 		yield []
+;; ;; 		return
 		
-;; 	# modify partitions of n-1 to form partitions of n
-;; 	for p in partitions(n-1):
-;; 		yield [1] + p
-;; 		if p and (len(p) < 2 or p[1] > p[0]):
-;; 			yield [p[0] + 1] + p[1:]
+;; ;; 	# modify partitions of n-1 to form partitions of n
+;; ;; 	for p in partitions(n-1):
+;; ;; 		yield [1] + p
+;; ;; 		if p and (len(p) < 2 or p[1] > p[0]):
+;; ;; 			yield [p[0] + 1] + p[1:]
 
-(defn- gen-partitions
-  ([n prev]
-   (let [get-next-terms 
-         (fn [p]
-           (let [p1 [(into [] (concat [1] p))]]
-             (if (or (< (count p) 2)
-                     (> (second p) (first p)))
-               (conj p1 (into [] (concat [(inc (first p))] (subvec p 1))))
-               p1)))
-         curr (mapcat
-               (fn [p] (get-next-terms p))
-               prev)]
-     (lazy-seq (cons curr (gen-partitions (inc n) curr)))))
-  ([]
-   (gen-partitions 1 [[1]])))
+;; (defn- gen-partitions
+;;   ([n prev]
+;;    (let [get-next-terms 
+;;          (fn [p]
+;;            (let [p1 [(into [] (concat [1] p))]]
+;;              (if (or (< (count p) 2)
+;;                      (> (second p) (first p)))
+;;                (conj p1 (into [] (concat [(inc (first p))] (subvec p 1))))
+;;                p1)))
+;;          curr (mapcat
+;;                (fn [p] (get-next-terms p))
+;;                prev)]
+;;      (lazy-seq (cons curr (gen-partitions (inc n) curr)))))
+;;   ([]
+;;    (gen-partitions 1 [[1]])))
 
-(defn- partition-map [max]
-  (->> (gen-partitions)
-       (take (dec max))
-       (map #(remove (fn [x] (= (count x) 1)) %))
-       (interleave (range 2 max))
-       (partition 2)
-       (map #(into [] %))
-       (into (sorted-map 1 [[1]]))))
+;; (defn- partition-map [max]
+;;   (->> (gen-partitions)
+;;        (take (dec max))
+;;        (map #(remove (fn [x] (= (count x) 1)) %))
+;;        (interleave (range 2 max))
+;;        (partition 2)
+;;        (map #(into [] %))
+;;        (into (sorted-map 1 [[1]]))))
 
-;; Max 14 factors for numbers below 24000. This is 2^14. So need partitions of numbers at least until 14.
-(def partition-cache (partition-map 16))
+;; ;; Max 14 factors for numbers below 24000. This is 2^14. So need partitions of numbers at least until 14.
+;; (def partition-cache (partition-map 16))
 
-(defn- get-factors
-  ([n div factors]
-    (cond (<= n 1) factors
-          (= 0 (mod n div)) (recur (quot n div) div (conj factors div))
-          :else (recur n (inc div) factors)))
-  ([n]
-    (get-factors n 2 [])))
+;; (defn- get-factors
+;;   ([n div factors]
+;;     (cond (<= n 1) factors
+;;           (= 0 (mod n div)) (recur (quot n div) div (conj factors div))
+;;           :else (recur n (inc div) factors)))
+;;   ([n]
+;;     (get-factors n 2 [])))
 
-(def exp
-  (memoize
-   (fn [b n]
-     (nth (iterate #(* b %) 1) n))))
+;; (def exp
+;;   (memoize
+;;    (fn [b n]
+;;      (nth (iterate #(* b %) 1) n))))
 
-(defn- red-vals [factor power]
-  (->> (partition-cache power)
-       (map #(map (fn [x] (exp factor x)) %))
-       (map #(- (reduce + %) (count %)))
-       (distinct)))
+;; (defn- red-vals [factor power]
+;;   (->> (partition-cache power)
+;;        (map #(map (fn [x] (exp factor x)) %))
+;;        (map #(- (reduce + %) (count %)))
+;;        (distinct)))
 
-(defn- get-ks [n]
-  (let [factors (get-factors n)
-        factor-freqs (frequencies factors)
-        ]
-    factor-freqs))
+;; (defn- get-ks [n]
+;;   (let [factors (get-factors n)
+;;         factor-freqs (frequencies factors)
+;;         ]
+;;     factor-freqs))
 
-(def factors-map
-  (->> (range 24000)
-       (map get-factors)
-       (interleave (range 24000))
-       (partition 2)
-       (map vec)
-       (into (sorted-map))))
+;; (def factors-map
+;;   (->> (range 24000)
+;;        (map get-factors)
+;;        (interleave (range 24000))
+;;        (partition 2)
+;;        (map vec)
+;;        (into (sorted-map))))
 
 (def multiplicative-partition
   (memoize
@@ -2527,3 +2527,70 @@
 
 (defn problem-88 []
   (k-sum 12000))
+
+;; https://projecteuler.net/problem=89
+
+;; 1. Write a reader function to read a valid (possibly not minimal) roman numeral from a string and return its value.
+;; 2. Write a function to return the minimal roman numeral string given a value.
+;; 3. Count characters saved.
+
+(def roman-to-decimal-conversion
+  "Subtractions on first row. Then others."
+  [["CM" 900] ["CD" 400] ["XC" 90] ["XL" 40] ["IX" 9] ["IV" 4]
+   ["M" 1000] ["D" 500] ["C" 100] ["L" 50] ["X" 10] ["V" 5] ["I" 1]])
+
+(defn- convert-roman-numeral-to-decimal [roman-num]
+  (second
+   (reduce (fn [[rs sum] [rep-str val]]
+             [(str/replace rs rep-str "")
+              (+ (* (count (re-seq (re-pattern rep-str) rs)) val) sum)])
+           [roman-num 0] roman-to-decimal-conversion)))
+
+;; First five from dataset
+
+;; MMMMDCLXXII
+;; MMDCCCLXXXIII
+;; MMMDLXVIIII
+;; MMMMDXCV
+;; DCCCLXXII
+
+(testing
+  (is (= 4672 (convert-roman-numeral-to-decimal "MMMMDCLXXII")))
+  (is (= 2883 (convert-roman-numeral-to-decimal "MMDCCCLXXXIII")))
+  (is (= 3569 (convert-roman-numeral-to-decimal "MMMDLXVIIII")))
+  (is (= 4595 (convert-roman-numeral-to-decimal "MMMMDXCV")))
+  (is (= 872 (convert-roman-numeral-to-decimal "DCCCLXXII"))))
+
+(defn- convert-decimal-to-roman-numeral [num]
+  "Convert decimal number to minimal form roman numeral
+  As there are maximally only 4 consecutive digits, The maximum value does not exceed 4999 < 10000"
+  (let [comps
+        (second
+         (reduce (fn [[rem comps] q]
+                   [(mod rem q) (conj comps (quot rem q))])
+                 [num []]
+                 [1000 100 10 1]))
+        ;; First normal, Then what to do with 4, 5 and 9
+        conversions [{:else "M" 4 "MMMM"} {:else "C", 4 "CD", 5 "D", 9 "CM"}
+                     {:else "X", 4 "XL", 5 "L", 9 "XC"} {:else "I", 4 "IV", 5 "V", 9 "IX"}]
+        convert (fn [d conversion-map]
+                  (if (or (= d 4) (= d 5) (= d 9))
+                    (conversion-map d)
+                    (str (if (> d 5) (conversion-map 5) "")
+                         (apply str (repeat (mod d 5) (conversion-map :else))))))]
+    (first
+     (reduce (fn [[rom cmp] conversion]
+               [(str rom (convert (first cmp) conversion)) (rest cmp)])
+             ["" comps]
+             conversions))))
+
+
+(defn problem-89 []
+  (let [romans (->> (str/split (slurp "p089_roman.txt") #"\s"))
+        characters-saved (fn [roman]
+                           (- (.length roman)
+                              (.length (convert-decimal-to-roman-numeral
+                                        (convert-roman-numeral-to-decimal roman)))))]
+    (->> romans
+         (map characters-saved)
+         (reduce +))))
