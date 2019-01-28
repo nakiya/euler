@@ -2561,6 +2561,8 @@
   (is (= 4595 (convert-roman-numeral-to-decimal "MMMMDXCV")))
   (is (= 872 (convert-roman-numeral-to-decimal "DCCCLXXII"))))
 
+;; A crude unrolled DP algorithm.
+
 (defn- convert-decimal-to-roman-numeral [num]
   "Convert decimal number to minimal form roman numeral
   As there are maximally only 4 consecutive digits, The maximum value does not exceed 4999 < 10000"
@@ -2584,7 +2586,6 @@
              ["" comps]
              conversions))))
 
-
 (defn problem-89 []
   (let [romans (->> (str/split (slurp "p089_roman.txt") #"\s"))
         characters-saved (fn [roman]
@@ -2594,3 +2595,46 @@
     (->> romans
          (map characters-saved)
          (reduce +))))
+
+;; https://projecteuler.net/problem=90
+
+;;10-C-6 ways of picking a single cube.
+;;10-C-6 * 10-C-6 ways of picking two cubes = 210 * 210 = 44100
+;;We should be able to simply simulate and enumerate. But why is the difficulty rating 40%?
+
+(defn- dice-has-num? [dice num]
+  (if (or (= num 6) (= num 9))
+    (or (dice 6) (dice 9))
+    (dice num)))
+
+(defn- can-make-number-from-dices? [num dice1 dice2]
+  "dice1 and dice2 are sets"
+  (let [num1 (quot num 10)
+        num2 (mod num 10)]
+    (or (and (dice-has-num? dice1 num1) (dice-has-num? dice2 num2))
+        (and (dice-has-num? dice2 num1) (dice-has-num? dice1 num2)))))
+
+;; (can-make-number-from-dices? 16 #{0 1 2 3 4 5} #{1 2 3 4 5 6})
+;; (can-make-number-from-dices? 9 #{0 1 2 3 4 5} #{1 2 3 4 5 6})
+
+(defn- can-make-all-squares-from-dices? [dice1 dice2]
+  (->> [1 4 9 16 25 36 49 64 81]
+       (map #(can-make-number-from-dices? % dice1 dice2))
+       (reduce #(and %1 %2))))
+
+;; (can-make-all-squares-from-dices? #{0 5 6 7 8 9} #{1 2 3 4 8 9})
+;; (can-make-all-squares-from-dices? #{0 1 2 3 4 5} #{1 2 3 4 8 7})
+
+(defn problem-90 []
+  (->>
+   (for [d1 (combo/combinations (range 10) 6)
+         d2 (combo/combinations (range 10) 6)]
+     [(into #{} d1) (into #{} d2)])
+   (filter #(apply can-make-all-squares-from-dices? %))
+   ;; remove duplicates of course.
+   (map #(into #{} %))
+   (into #{})
+   (count)))
+
+;; I have no idea why this has 40% difficulty though.
+
