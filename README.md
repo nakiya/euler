@@ -13,4 +13,5 @@ Clojure lends itself to this sort of problems and it's a joy to see the transfor
 
 This is way more fun than it has any right to be.
 
+(Github caches images and this image does not have cache disabling headers set so badge might be out of date)
 ![](https://projecteuler.net/profile/dumrat.png)
