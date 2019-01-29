@@ -2638,3 +2638,24 @@
 
 ;; I have no idea why this has 40% difficulty though.
 
+;; https://projecteuler.net/problem=91
+;; Just enumerate and check everything
+
+(defn problem-91 []
+  (let [dim 51
+        sq (fn [x] (* x x))]
+    (loop [x1 0 y1 0 x2 0 y2 0 count 0]
+      (cond (= y2 dim) (recur x1 y1 (inc x2) 0 count)
+            (= x2 dim) (recur x1 (inc y1) 0 0 count)
+            (= y1 dim) (recur (inc x1) 0 0 0 count)
+            (= x1 dim) (/ count 2)
+            (and (zero? x2) (zero? y2)) (recur x1 y1 x2 (inc y2) count)
+            (and (zero? x1) (zero? y1)) (recur x1 (inc y1) x2 y2 count)
+            (and (= x1 x2) (= y1 y2)) (recur x1 y1 x2 (inc y2) count)
+            :else (let [p (+ (sq x1) (sq y1))
+                        q (+ (sq x2) (sq y2))
+                        r (+ (sq (- x1 x2)) (sq (- y1 y2)))
+                        right-angle? (or (= p (+ q r))
+                                         (= q (+ p r))
+                                         (= r (+ p q)))]
+                    (recur x1 y1 x2 (inc y2) (if right-angle? (inc count) count)))))))
