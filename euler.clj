@@ -2689,7 +2689,8 @@
                 (into []))
         ir (count is)
         jr (count js)
-        sum-term-map (->> (range 1 (inc (* 7 81)))
+        ;; 7 * 9^2 because it is the maximum sum of digits of any number under 10 million
+        sum-term-map (->> (range 1 (inc (* 7  9 9)))
                           (filter #(= 89 (get-first-repeat %)))
                           (into #{}))]
     ;; This double loop is ugly, but it suffices and the performance is good.
@@ -2699,3 +2700,60 @@
             :else (recur i (inc j) (if (sum-term-map (+ (first (nth is i)) (first (nth js j))))
                                      (+ count (* (second (nth is i)) (second (nth js j))))
                                      count))))))
+
+;; https://projecteuler.net/problem=93
+
+;; Perhaps I actually need infix?
+(defn- apply-ops [[a b c d] [op1 op2 op3]]
+  (list
+   (op1 a (op2 b (op3 c d)))
+   (op1 a (op2 (op3 b c) d))
+   (op1 (op2 a (op3 b c)) d)
+   (op1 (op2 (op3 a b) c) d)
+   (op1 (op2 a b) (op3 c d))))
+
+(defn- safedivide [a b]
+  (when (and (some? a) (some? b) (not (zero? b)))
+    (/ a b)))
+
+(defn- safeadd [a b]
+  (if (and (some? a) (some? b))
+    (+ a b)))
+
+(defn- safesubtract [a b]
+  (when (and (some? a) (some? b))
+    (- a b)))
+
+(defn- safemultiply [a b]
+  (when (and (some? a) (some? b))
+    (* a b)))
+
+(defn indices [pred coll]
+  (keep-indexed #(when (pred %2) %1) coll))
+
+(let [digit-combinations (combo/combinations (range 10) 4)
+      op-combinations (combo/combinations [safeadd safesubtract safemultiply safedivide] 3)
+      digit-arrangements (mapcat #(combo/permutations %) digit-combinations)
+      op-arrangements (mapcat #(combo/selections % 3) op-combinations)
+      gen-values-for-digit-combination (fn [digits]
+                                         (->>
+                                          (for [da (combo/permutations digits)
+                                                oa op-arrangements]
+                                            (apply-ops da oa))
+                                          (flatten)
+                                          (filter pos-int?)
+                                          (distinct)
+                                          (sort)))
+      run-length (fn [run]
+                   (loop [r run i 0]
+                     (cond (nil? r) i
+                           (not= (inc i) (first r)) (dec i)
+                           :else (recur (rest r) (inc i)))))]
+  (->> (interleave (->> digit-combinations
+                        (map gen-values-for-digit-combination)
+                        (map run-length)) digit-combinations)
+       (partition 2)
+       (sort-by first >)
+       (first)
+       (second)
+       (apply str)))
