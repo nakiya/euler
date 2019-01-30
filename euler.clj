@@ -2659,3 +2659,43 @@
                                          (= q (+ p r))
                                          (= r (+ p q)))]
                     (recur x1 y1 x2 (inc y2) (if right-angle? (inc count) count)))))))
+
+;; https://projecteuler.net/problem=92
+
+(def sum-square-digits
+  (memoize
+   (fn [num]
+     (let [sq (fn [x] (* x x))
+           str-num (str num)
+           digits (map #(- (int %) 48) str-num)]
+       (reduce + (map sq digits))))))
+
+(def get-first-repeat
+  (fn [num]
+    (loop [n num]
+      (if (or (= n 89) (= n 1))
+        n
+        (recur (sum-square-digits n))))))
+
+;; There's no need to brute force.
+(defn problem-92 []
+  (let [is (->> (range 1000)
+                (map sum-square-digits)
+                (frequencies)
+                (into []))
+        js (->> (range 10000)
+                (map sum-square-digits)
+                (frequencies)
+                (into []))
+        ir (count is)
+        jr (count js)
+        sum-term-map (->> (range 1 (inc (* 7 81)))
+                          (filter #(= 89 (get-first-repeat %)))
+                          (into #{}))]
+    ;; This double loop is ugly, but it suffices and the performance is good.
+    (loop [i 0 j 1 count 0]
+      (cond (= j jr) (recur (inc i) 0 count)
+            (= i ir) count
+            :else (recur i (inc j) (if (sum-term-map (+ (first (nth is i)) (first (nth js j))))
+                                     (+ count (* (second (nth is i)) (second (nth js j))))
+                                     count))))))
