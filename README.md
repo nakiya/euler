@@ -1,7 +1,7 @@
 # euler
 Solutions to problems #1 to #90 in Clojure.
 
-Sometimes I used a windows machine where lein couldn't download dependencies (Because I was in a corporate network and firewall blocked me off) and where I didn't have a proper IDE. In order to minimize suffering, I kept everything in a single file.
+Sometimes I used a windows machine where lein couldn't download dependencies (Because I was in a corporate network and firewall blocked me off) and where I don't have a proper IDE and tooling support. In order to minimize suffering, I kept everything in a single file.
 
 Clojure lends itself to this sort of problems and it's a joy to see the transformation of the problem data into the solution. Thread-last macro ftw!
 
